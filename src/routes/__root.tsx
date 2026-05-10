@@ -7,9 +7,12 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { loadSettings } from "@/lib/morse/storage";
+import { useApplyTheme } from "@/hooks/use-theme";
 
 function NotFoundComponent() {
   return (
@@ -90,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=DM+Serif+Display&family=Inter:wght@400;500;700&family=Archivo+Black&display=swap",
       },
     ],
   }),
@@ -116,11 +119,30 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [theme, setTheme] = useState(() => loadSettings().theme);
+
+  useEffect(() => {
+    setTheme(loadSettings().theme);
+    function onStorage(e: StorageEvent) {
+      if (e.key === "morsetype.settings.v1") setTheme(loadSettings().theme);
+    }
+    window.addEventListener("storage", onStorage);
+    function onCustom() { setTheme(loadSettings().theme); }
+    window.addEventListener("morsetype:settings-changed", onCustom);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("morsetype:settings-changed", onCustom);
+    };
+  }, []);
+
+  useApplyTheme(theme);
+
+  const isLightTheme = theme === "telegraph";
 
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <Toaster theme="dark" />
+      <Toaster theme={isLightTheme ? "light" : "dark"} />
     </QueryClientProvider>
   );
 }

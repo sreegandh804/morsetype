@@ -42,7 +42,7 @@ function pick<T>(arr: T[]): T {
 export function generate(kind: ContentKind, wordCount = 25): string {
   switch (kind) {
     case "letters":
-      return Array.from({ length: wordCount * 3 }, () => pick(LETTERS)).join(" ");
+      return Array.from({ length: wordCount }, () => pick(LETTERS)).join(" ");
     case "numbers":
       return Array.from({ length: wordCount }, () =>
         Array.from({ length: 3 + Math.floor(Math.random() * 3) }, () => pick(NUMS)).join(""),

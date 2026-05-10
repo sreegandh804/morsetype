@@ -8,12 +8,15 @@ export type GapMode = "auto" | "explicit";
 export interface MorseInputOptions {
   scheme: InputScheme;
   gapMode: GapMode;
-  unitMs: number; // dit length in ms (e.g. 60ms = 20 wpm)
+  unitMs: number;
   audio: boolean;
+  pitchHz: number;
   enabled: boolean;
-  onChar: (ch: string) => void; // emits decoded letter, or " " for word break, or "?" for unknown
-  onSymbol?: (s: "." | "-") => void; // for live preview of current letter
-  onReset?: () => void; // current-letter buffer cleared
+  onChar: (ch: string) => void;
+  onInvalid?: () => void;
+  onBackspace?: () => void;
+  onSymbol?: (s: "." | "-") => void;
+  onReset?: () => void;
 }
 
 const PADDLE_KEY = " ";
@@ -25,12 +28,12 @@ const LITERAL_DAH = "-";
 export function useMorseInput(opts: MorseInputOptions) {
   const buf = useRef("");
   const downAt = useRef<number | null>(null);
-  const lastUpAt = useRef<number | null>(null);
   const letterTimer = useRef<number | null>(null);
   const wordTimer = useRef<number | null>(null);
   const [current, setCurrent] = useState("");
+  const [lastSymbolAt, setLastSymbolAt] = useState<number | null>(null);
+  const [pressStartAt, setPressStartAt] = useState<number | null>(null);
 
-  // keep latest opts in ref so listeners are stable
   const optsRef = useRef(opts);
   optsRef.current = opts;
 
@@ -38,24 +41,31 @@ export function useMorseInput(opts: MorseInputOptions) {
     const o = optsRef.current;
     const b = buf.current;
     if (!b) return;
-    const decoded = REVERSE_MORSE[b] ?? "?";
-    o.onChar(decoded);
+    const decoded = REVERSE_MORSE[b];
     buf.current = "";
     setCurrent("");
+    setLastSymbolAt(null);
     o.onReset?.();
+    if (decoded === undefined) {
+      o.onInvalid?.();
+      return;
+    }
+    o.onChar(decoded);
   }
 
   function emitWord() {
     flushLetter();
     optsRef.current.onChar(" ");
+    setLastSymbolAt(null);
   }
 
   function pushSymbol(s: "." | "-") {
     const o = optsRef.current;
     buf.current += s;
     setCurrent(buf.current);
+    setLastSymbolAt(performance.now());
     o.onSymbol?.(s);
-    if (o.audio) beep(s === "." ? o.unitMs : o.unitMs * 3);
+    if (o.audio) beep(s === "." ? o.unitMs : o.unitMs * 3, o.pitchHz);
     if (o.gapMode === "auto") {
       if (letterTimer.current) window.clearTimeout(letterTimer.current);
       if (wordTimer.current) window.clearTimeout(wordTimer.current);
@@ -72,7 +82,24 @@ export function useMorseInput(opts: MorseInputOptions) {
       if (e.repeat) return;
       const k = e.key;
 
-      // Always: explicit gap controls (when gap mode = explicit) for non-paddle
+      if (k === "Backspace") {
+        e.preventDefault();
+        if (buf.current.length > 0) {
+          buf.current = buf.current.slice(0, -1);
+          setCurrent(buf.current);
+          if (buf.current.length === 0) {
+            setLastSymbolAt(null);
+            if (letterTimer.current) window.clearTimeout(letterTimer.current);
+            if (wordTimer.current) window.clearTimeout(wordTimer.current);
+          } else {
+            setLastSymbolAt(performance.now());
+          }
+        } else {
+          o.onBackspace?.();
+        }
+        return;
+      }
+
       if (o.gapMode === "explicit" && o.scheme !== "paddle") {
         if (k === " ") { e.preventDefault(); flushLetter(); return; }
         if (k === "Enter") { e.preventDefault(); emitWord(); return; }
@@ -81,10 +108,12 @@ export function useMorseInput(opts: MorseInputOptions) {
       if (o.scheme === "paddle") {
         if (k === PADDLE_KEY) {
           e.preventDefault();
-          if (downAt.current == null) downAt.current = performance.now();
+          if (downAt.current == null) {
+            downAt.current = performance.now();
+            setPressStartAt(downAt.current);
+          }
           return;
         }
-        // even in paddle, Enter = word break (Tab handled by parent for restart)
         if (k === "Enter") { e.preventDefault(); emitWord(); return; }
         return;
       }
@@ -109,11 +138,11 @@ export function useMorseInput(opts: MorseInputOptions) {
       e.preventDefault();
       const start = downAt.current;
       downAt.current = null;
+      setPressStartAt(null);
       if (start == null) return;
       const held = performance.now() - start;
-      const isDah = held >= o.unitMs * 2; // tap shorter than 2 units = dit
+      const isDah = held >= o.unitMs * 2;
       pushSymbol(isDah ? "-" : ".");
-      lastUpAt.current = performance.now();
     }
 
     window.addEventListener("keydown", onKeyDown);
@@ -129,10 +158,12 @@ export function useMorseInput(opts: MorseInputOptions) {
   function reset() {
     buf.current = "";
     setCurrent("");
+    setLastSymbolAt(null);
+    setPressStartAt(null);
     downAt.current = null;
     if (letterTimer.current) window.clearTimeout(letterTimer.current);
     if (wordTimer.current) window.clearTimeout(wordTimer.current);
   }
 
-  return { currentMorse: current, reset, flushLetter, emitWord };
+  return { currentMorse: current, lastSymbolAt, pressStartAt, reset, flushLetter, emitWord };
 }

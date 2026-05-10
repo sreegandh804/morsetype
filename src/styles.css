@@ -31,6 +31,9 @@
   --color-ring: var(--ring);
   --color-success: var(--success);
   --color-error: var(--error);
+  --color-error-soft: var(--error-soft);
+  --color-error-border: var(--error-border);
+  --color-error-strong: var(--error-strong);
   --color-sub: var(--sub);
   --color-sub-alt: var(--sub-alt);
   --color-text: var(--text);
@@ -40,26 +43,125 @@
   --color-hairline: var(--hairline);
   --color-main-soft: var(--main-soft);
   --color-main-border: var(--main-border);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --font-display: var(--font-display);
 }
 
-/* Warm-charcoal palette inspired by monkeytype "serika dark" */
-:root {
+:root,
+:root[data-theme="serika"] {
   --radius: 0.5rem;
 
-  --background: #1a1814;                    /* warm near-black */
-  --sub-alt: rgba(255, 255, 255, 0.03);     /* faintly lit panels */
-  --sub-alt-solid: #221f1a;                 /* solid variant when needed */
-  --sub: rgba(255, 255, 255, 0.3);          /* dim text - untyped */
-  --sub-strong: rgba(255, 255, 255, 0.55);  /* dim but readable */
-  --sub-faint: rgba(255, 255, 255, 0.15);   /* hints / placeholders */
-  --text: #e8e0d0;                          /* warm off-white */
-  --main: #f0b429;                          /* signature mustard yellow */
-  --main-soft: rgba(240, 180, 41, 0.08);    /* tinted pill background */
-  --main-border: rgba(240, 180, 41, 0.2);   /* tinted border */
-  --success: #5cb85c;                       /* correct green */
-  --error: #e05252;                         /* error red */
-  --hairline: rgba(255, 255, 255, 0.04);    /* near-invisible divider */
+  --background: #1a1814;
+  --text: #e8e0d0;
+  --main: #f0b429;
+  --success: #5cb85c;
+  --error: #e05252;
 
+  --sub: rgba(255, 255, 255, 0.3);
+  --sub-strong: rgba(255, 255, 255, 0.55);
+  --sub-faint: rgba(255, 255, 255, 0.15);
+  --sub-alt: rgba(255, 255, 255, 0.03);
+  --hairline: rgba(255, 255, 255, 0.04);
+
+  --main-soft: rgba(240, 180, 41, 0.08);
+  --main-border: rgba(240, 180, 41, 0.2);
+
+  --error-soft: rgba(224, 82, 82, 0.07);
+  --error-border: rgba(224, 82, 82, 0.3);
+  --error-strong: rgba(224, 82, 82, 0.65);
+
+  --surface-1: rgba(255, 255, 255, 0.03);
+  --surface-2: rgba(255, 255, 255, 0.06);
+
+  --font-display: "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root[data-theme="telegraph"] {
+  --radius: 0.25rem;
+
+  --background: #f4ecd6;
+  --text: #1a1612;
+  --main: #a4252b;
+  --success: #3d5e2a;
+  --error: #6e1a1a;
+
+  --sub: rgba(26, 22, 18, 0.5);
+  --sub-strong: rgba(26, 22, 18, 0.78);
+  --sub-faint: rgba(26, 22, 18, 0.28);
+  --sub-alt: rgba(26, 22, 18, 0.04);
+  --hairline: rgba(26, 22, 18, 0.1);
+
+  --main-soft: rgba(164, 37, 43, 0.07);
+  --main-border: rgba(164, 37, 43, 0.28);
+
+  --error-soft: rgba(110, 26, 26, 0.07);
+  --error-border: rgba(110, 26, 26, 0.3);
+  --error-strong: rgba(110, 26, 26, 0.65);
+
+  --surface-1: rgba(26, 22, 18, 0.04);
+  --surface-2: rgba(26, 22, 18, 0.08);
+
+  --font-display: "DM Serif Display", "Newsreader", Georgia, serif;
+}
+
+:root[data-theme="midnight"] {
+  --radius: 0.5rem;
+
+  --background: #0a1428;
+  --text: #ede8de;
+  --main: #6ee7ff;
+  --success: #4ade80;
+  --error: #ff8d8d;
+
+  --sub: rgba(237, 232, 222, 0.4);
+  --sub-strong: rgba(237, 232, 222, 0.65);
+  --sub-faint: rgba(237, 232, 222, 0.2);
+  --sub-alt: rgba(255, 255, 255, 0.03);
+  --hairline: rgba(237, 232, 222, 0.07);
+
+  --main-soft: rgba(110, 231, 255, 0.07);
+  --main-border: rgba(110, 231, 255, 0.28);
+
+  --error-soft: rgba(255, 141, 141, 0.08);
+  --error-border: rgba(255, 141, 141, 0.3);
+  --error-strong: rgba(255, 141, 141, 0.65);
+
+  --surface-1: rgba(255, 255, 255, 0.035);
+  --surface-2: rgba(255, 255, 255, 0.07);
+
+  --font-display: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+:root[data-theme="radiosport"] {
+  --radius: 0.125rem;
+
+  --background: #000000;
+  --text: #ffffff;
+  --main: #ff5c1a;
+  --success: #4cff4c;
+  --error: #ff3030;
+
+  --sub: rgba(255, 255, 255, 0.45);
+  --sub-strong: rgba(255, 255, 255, 0.75);
+  --sub-faint: rgba(255, 255, 255, 0.22);
+  --sub-alt: rgba(255, 255, 255, 0.04);
+  --hairline: rgba(255, 255, 255, 0.1);
+
+  --main-soft: rgba(255, 92, 26, 0.1);
+  --main-border: rgba(255, 92, 26, 0.32);
+
+  --error-soft: rgba(255, 48, 48, 0.1);
+  --error-border: rgba(255, 48, 48, 0.4);
+  --error-strong: rgba(255, 48, 48, 0.7);
+
+  --surface-1: rgba(255, 255, 255, 0.04);
+  --surface-2: rgba(255, 255, 255, 0.08);
+
+  --font-display: "Archivo Black", "Inter", system-ui, sans-serif;
+}
+
+:root {
   --foreground: var(--text);
   --card: var(--sub-alt);
   --card-foreground: var(--text);
@@ -80,6 +182,24 @@
   --ring: var(--main);
 }
 
+:root[data-theme="telegraph"] {
+  --border: rgba(26, 22, 18, 0.12);
+  --input: rgba(26, 22, 18, 0.08);
+  --primary-foreground: #f4ecd6;
+}
+
+:root[data-theme="midnight"] {
+  --border: rgba(237, 232, 222, 0.1);
+  --input: rgba(237, 232, 222, 0.08);
+  --primary-foreground: #0a1428;
+}
+
+:root[data-theme="radiosport"] {
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.1);
+  --primary-foreground: #000000;
+}
+
 .dark { /* keep same */ }
 
 @layer base {
@@ -89,6 +209,7 @@
     color: var(--color-text);
     font-family: var(--font-mono);
     -webkit-font-smoothing: antialiased;
+    transition: background-color 250ms ease, color 250ms ease;
   }
   ::selection { background: var(--color-main); color: var(--primary-foreground); }
 }
@@ -130,7 +251,7 @@
   .mode-cluster {
     display: inline-flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--color-surface-1);
     border-radius: 0.5rem;
     padding: 0.25rem;
     gap: 0;
@@ -138,7 +259,7 @@
   .mode-cluster .divider {
     width: 1px;
     height: 16px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--color-surface-2);
     margin: 0 0.5rem;
     flex-shrink: 0;
   }
@@ -153,9 +274,30 @@
   }
   .stat-label {
     font-size: 0.6875rem;
-    color: rgba(255, 255, 255, 0.25);
+    color: var(--color-sub-faint);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-top: 0.25rem;
+  }
+
+  .imv-countdown {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform-origin: left;
+    animation-name: imv-drain;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+    opacity: 0.85;
+  }
+  @keyframes imv-drain {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+  }
+
+  .font-display {
+    font-family: var(--font-display);
   }
 }

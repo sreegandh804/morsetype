@@ -10,10 +10,10 @@ interface Props {
 export function StatsBar({ wpm, acc, elapsedMs, total, typed, active }: Props) {
   const pct = total > 0 ? Math.min(100, (typed / total) * 100) : 0;
   const accColor =
-    acc >= 100 ? "var(--success)" :
-    acc >= 90 ? "var(--main)" :
-    acc > 0 ? "var(--error)" :
-    "var(--main)";
+    acc >= 100 ? "var(--color-success)" :
+    acc >= 90 ? "var(--color-main)" :
+    acc > 0 ? "var(--color-error)" :
+    "var(--color-main)";
 
   return (
     <div className="w-full pt-5 border-t border-(--color-hairline)">
@@ -47,7 +47,7 @@ export function Stat({
     <div className="flex flex-col items-center">
       <div
         className="stat-value"
-        style={{ color: color ?? (dim ? "rgba(255,255,255,0.4)" : undefined) }}
+        style={{ color: color ?? (dim ? "var(--color-sub)" : undefined) }}
       >
         {value}
       </div>

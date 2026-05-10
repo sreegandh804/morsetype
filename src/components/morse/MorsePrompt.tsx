@@ -11,7 +11,7 @@ interface Props {
 export function MorsePrompt({ target, typed, errors, showHints, currentMorse }: Props) {
   const cursor = typed.length;
   return (
-    <div className="flex flex-wrap justify-center px-4 py-6 min-h-[7.5rem] gap-y-2 select-none leading-tight">
+    <div className="flex flex-wrap justify-center px-4 py-6 min-h-[7.5rem] gap-y-2 leading-tight">
       {target.split("").map((ch, i) => {
         const done = i < cursor;
         const isCurrent = i === cursor;

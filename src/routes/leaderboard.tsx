@@ -22,13 +22,11 @@ interface Entry {
 }
 
 const CONTENTS = ["all", "letters", "words", "sentences", "tongue_twisters", "numbers"] as const;
-const MODES = ["all", "learn", "test"] as const;
 
 function Page() {
   const [rows, setRows] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState<(typeof CONTENTS)[number]>("all");
-  const [mode, setMode] = useState<(typeof MODES)[number]>("all");
 
   useEffect(() => {
     let cancelled = false;
@@ -36,18 +34,17 @@ function Page() {
     (async () => {
       let q = supabase.from("leaderboard_entries").select("*").order("wpm", { ascending: false }).limit(50);
       if (content !== "all") q = q.eq("content", content);
-      if (mode !== "all") q = q.eq("mode", mode);
       const { data } = await q;
       if (!cancelled) { setRows((data as Entry[]) ?? []); setLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [content, mode]);
+  }, [content]);
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 max-w-4xl w-full mx-auto px-8 py-10">
-        <h1 className="font-mono text-2xl tracking-tight mb-1">
+        <h1 className="font-display text-3xl tracking-tight mb-1">
           <span className="text-(--color-text)">leader</span>
           <span className="text-(--color-main)">board</span>
         </h1>
@@ -56,10 +53,6 @@ function Page() {
         </p>
 
         <div className="mode-cluster mb-8">
-          {MODES.map(m => (
-            <button key={m} className="pill" data-active={mode === m} onClick={() => setMode(m)}>{m}</button>
-          ))}
-          <span className="divider" />
           {CONTENTS.map(c => (
             <button key={c} className="pill" data-active={content === c} onClick={() => setContent(c)}>
               {c.replace("_", " ")}
@@ -73,8 +66,8 @@ function Page() {
           <div
             className="px-6 py-10 rounded-xl text-center"
             style={{
-              background: "rgba(255, 255, 255, 0.02)",
-              border: "1px solid var(--hairline)",
+              background: "var(--color-surface-1)",
+              border: "1px solid var(--color-hairline)",
             }}
           >
             <div className="text-2xl mb-3">·−</div>
@@ -86,15 +79,15 @@ function Page() {
           <div
             className="overflow-x-auto rounded-xl"
             style={{
-              background: "rgba(255, 255, 255, 0.02)",
-              border: "1px solid var(--hairline)",
+              background: "var(--color-surface-1)",
+              border: "1px solid var(--color-hairline)",
             }}
           >
             <table className="w-full font-mono text-sm">
               <thead className="text-(--color-sub-faint) text-[10px] uppercase tracking-[0.08em]">
                 <tr>
                   <Th>#</Th><Th>name</Th><Th>wpm</Th><Th>acc</Th>
-                  <Th>mode</Th><Th>content</Th><Th>input</Th><Th>when</Th>
+                  <Th>content</Th><Th>input</Th><Th>when</Th>
                 </tr>
               </thead>
               <tbody>
@@ -107,7 +100,6 @@ function Page() {
                     <Td className="text-(--color-text)">{r.name}</Td>
                     <Td><span className="text-(--color-main) font-bold">{r.wpm}</span></Td>
                     <Td className="text-(--color-sub-strong)">{r.accuracy}%</Td>
-                    <Td className="text-(--color-sub)">{r.mode}</Td>
                     <Td className="text-(--color-sub)">{r.content.replace("_", " ")}</Td>
                     <Td className="text-(--color-sub)">{r.input_scheme.replace("_", " ")}</Td>
                     <Td className="text-(--color-sub-faint) text-xs">

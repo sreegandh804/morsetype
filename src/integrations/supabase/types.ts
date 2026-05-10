@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leaderboard_entries: {
+        Row: {
+          accuracy: number
+          content: string
+          created_at: string
+          duration_seconds: number
+          id: string
+          input_scheme: string
+          mode: string
+          name: string
+          wpm: number
+        }
+        Insert: {
+          accuracy: number
+          content: string
+          created_at?: string
+          duration_seconds: number
+          id?: string
+          input_scheme: string
+          mode: string
+          name: string
+          wpm: number
+        }
+        Update: {
+          accuracy?: number
+          content?: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          input_scheme?: string
+          mode?: string
+          name?: string
+          wpm?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,20 +1,19 @@
 import { Link } from "@tanstack/react-router";
-import { Radio } from "lucide-react";
 
 export function Header() {
   return (
-    <header className="w-full max-w-5xl mx-auto px-4 py-6 flex items-center justify-between">
-      <Link to="/" className="flex items-center gap-2 group">
-        <Radio className="size-6 text-(--color-main) group-hover:rotate-12 transition-transform" />
-        <span className="font-mono text-xl font-bold">
+    <header className="w-full px-8 py-5 flex items-center justify-between border-b border-(--color-hairline)">
+      <Link to="/" className="flex items-center gap-2.5 group">
+        <span className="text-(--color-main) text-lg tracking-wider leading-none">··· −−− ···</span>
+        <span className="font-mono text-lg font-bold tracking-tight leading-none">
           <span className="text-(--color-text)">morse</span>
           <span className="text-(--color-main)">type</span>
         </span>
       </Link>
-      <nav className="flex items-center gap-1 text-sm">
-        <NavLink to="/">test</NavLink>
+      <nav className="flex items-center gap-6 text-[13px] lowercase">
+        <NavLink to="/">practice</NavLink>
+        <NavLink to="/about">learn</NavLink>
         <NavLink to="/leaderboard">leaderboard</NavLink>
-        <NavLink to="/about">about</NavLink>
       </nav>
     </header>
   );
@@ -25,8 +24,8 @@ function NavLink({ to, children }: { to: "/" | "/leaderboard" | "/about"; childr
     <Link
       to={to}
       activeOptions={{ exact: true }}
-      activeProps={{ className: "pill text-(--color-main)" }}
-      className="pill"
+      activeProps={{ className: "text-(--color-main) font-medium" }}
+      className="text-(--color-sub) hover:text-(--color-sub-strong) transition-colors"
     >
       {children}
     </Link>

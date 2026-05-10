@@ -4,10 +4,12 @@ import { ModeBar } from "./ModeBar";
 import { StatsBar } from "./StatsBar";
 import { Results } from "./Results";
 import { SettingsDialog } from "./SettingsDialog";
+import { InputVisualizer } from "./InputVisualizer";
 import { useMorseInput } from "@/lib/morse/useMorseInput";
 import { generate } from "@/lib/morse/content";
 import { calcAccuracy, calcWpm } from "@/lib/morse/wpm";
 import { loadSettings, saveSettings, type Settings } from "@/lib/morse/storage";
+import { MORSE } from "@/lib/morse/alphabet";
 
 type Phase = "idle" | "running" | "done";
 
@@ -121,13 +123,30 @@ export function TypingTest() {
   const wpm = useMemo(() => calcWpm(correctCount, elapsedMs || 1), [correctCount, elapsedMs]);
   const acc = calcAccuracy(correctCount, totalChars);
 
+  const currentChar = target[typed.length];
+  const targetMorse =
+    currentChar && currentChar !== " "
+      ? MORSE[currentChar.toUpperCase()] ?? null
+      : null;
+  const hint =
+    settings.scheme === "paddle" ? "space = tap dit · hold dah" :
+    settings.scheme === "two_key" ? "j = dit · k = dah" :
+    ". = dit · - = dah";
+
   return (
-    <div className="flex flex-col items-center gap-10 w-full max-w-5xl mx-auto px-4">
-      <ModeBar settings={settings} onChange={patchSettings} onOpenSettings={() => setSettingsOpen(true)} />
+    <div className="flex flex-col items-center w-full max-w-3xl mx-auto px-8">
+      <div className="mb-8">
+        <ModeBar settings={settings} onChange={patchSettings} onOpenSettings={() => setSettingsOpen(true)} />
+      </div>
 
       {phase !== "done" ? (
         <>
-          <div className="min-h-[10rem] w-full flex items-center justify-center">
+          <InputVisualizer
+            currentInput={currentMorse}
+            targetMorse={targetMorse}
+            hint={hint}
+          />
+          <div className="w-full">
             <MorsePrompt
               target={target}
               typed={typed}
@@ -136,14 +155,16 @@ export function TypingTest() {
               currentMorse={currentMorse}
             />
           </div>
-          <StatsBar
-            wpm={wpm}
-            acc={acc}
-            elapsedMs={elapsedMs}
-            total={target.length}
-            typed={typed.length}
-            active={phase === "running"}
-          />
+          <div className="w-full mt-6">
+            <StatsBar
+              wpm={wpm}
+              acc={acc}
+              elapsedMs={elapsedMs}
+              total={target.length}
+              typed={typed.length}
+              active={phase === "running"}
+            />
+          </div>
           <InputHelp scheme={settings.scheme} gapMode={settings.gapMode} />
         </>
       ) : (
@@ -164,18 +185,21 @@ export function TypingTest() {
 }
 
 function InputHelp({ scheme, gapMode }: { scheme: string; gapMode: string }) {
-  const left =
-    scheme === "paddle" ? "space — tap = dit · hold = dah" :
-    scheme === "two_key" ? "J = dit · K = dah" :
-    ". = dit · - = dah";
-  const right = gapMode === "auto"
-    ? "auto-timing (3u letter · 7u word)"
-    : "space = letter · enter = word";
+  const inputHints =
+    scheme === "paddle"
+      ? [{ k: "space", v: "tap dit · hold dah" }]
+      : scheme === "two_key"
+        ? [{ k: "j", v: "dit" }, { k: "k", v: "dah" }]
+        : [{ k: ".", v: "dit" }, { k: "-", v: "dah" }];
+  const gapHint = gapMode === "auto" ? "auto-timing" : "space = letter · enter = word";
   return (
-    <div className="text-(--color-sub) text-xs flex flex-wrap justify-center gap-x-6 gap-y-1">
-      <span>{left}</span>
-      <span>{right}</span>
-      <span>tab + enter — restart · esc — settings</span>
+    <div className="mt-6 text-[11px] text-(--color-sub-faint) flex flex-wrap justify-center gap-x-5 gap-y-1 lowercase tracking-wide">
+      {inputHints.map(h => (
+        <span key={h.k}><span className="text-(--color-sub) font-medium">{h.k}</span> = {h.v}</span>
+      ))}
+      <span>{gapHint}</span>
+      <span><span className="text-(--color-sub) font-medium">tab</span> = restart</span>
+      <span><span className="text-(--color-sub) font-medium">esc</span> = settings</span>
     </div>
   );
 }

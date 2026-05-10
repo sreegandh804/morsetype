@@ -1,17 +1,21 @@
-import { MORSE } from "@/lib/morse/alphabet";
-
 interface Props {
   target: string;
   typed: string;
   errors: boolean[];
   showHints: boolean;
   currentMorse: string;
+  /** Active language's char -> morse table. */
+  morse: Record<string, string>;
+  rtl?: boolean;
 }
 
-export function MorsePrompt({ target, typed, errors, showHints, currentMorse }: Props) {
+export function MorsePrompt({ target, typed, errors, showHints, currentMorse, morse, rtl }: Props) {
   const cursor = typed.length;
   return (
-    <div className="flex flex-wrap justify-center px-4 py-6 min-h-[7.5rem] gap-y-2 select-none leading-tight">
+    <div
+      className="flex flex-wrap justify-center px-4 py-6 min-h-[7.5rem] gap-y-2 select-none leading-tight"
+      dir={rtl ? "rtl" : "ltr"}
+    >
       {target.split("").map((ch, i) => {
         const done = i < cursor;
         const isCurrent = i === cursor;
@@ -22,9 +26,8 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse }: 
         if (isCurrent) color = "var(--main)";
         else if (done) color = isError ? "var(--error)" : "var(--sub-strong)";
 
-        const morseGlyph = isSpace ? "" : MORSE[ch.toUpperCase()] ?? "";
-        const hintMorse =
-          isCurrent && currentMorse ? currentMorse : morseGlyph;
+        const morseGlyph = isSpace ? "" : (morse[ch] ?? morse[ch.toUpperCase()] ?? "");
+        const hintMorse = isCurrent && currentMorse ? currentMorse : morseGlyph;
 
         return (
           <span

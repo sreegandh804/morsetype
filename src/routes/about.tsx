@@ -5,9 +5,9 @@ import { MORSE } from "@/lib/morse/alphabet";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About & Morse Reference — MorseType" },
+      { title: "Learn — MorseType" },
       { name: "description", content: "How MorseType works, ITU timing rules, and the full International Morse Code alphabet chart." },
-      { property: "og:title", content: "About MorseType" },
+      { property: "og:title", content: "Learn — MorseType" },
       { property: "og:description", content: "Learn ITU Morse timing and explore the full alphabet chart." },
     ],
   }),
@@ -17,79 +17,114 @@ export const Route = createFileRoute("/about")({
 function Page() {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   const numbers = "0123456789".split("");
+  const punctuation = Object.keys(MORSE).filter(k => !/[A-Z0-9]/.test(k));
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 space-y-12">
-        <section className="space-y-3">
-          <h1 className="font-mono text-3xl">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-8 py-10 space-y-12">
+        <section>
+          <h1 className="font-mono text-2xl tracking-tight mb-2">
             <span className="text-(--color-text)">about </span>
             <span className="text-(--color-main)">morsetype</span>
           </h1>
-          <p className="text-(--color-sub) leading-relaxed max-w-2xl">
+          <p className="text-(--color-sub-strong) leading-relaxed max-w-2xl text-sm">
             A keyboard-first Morse code trainer modeled on the UX of monkeytype. Pick a mode,
             pick how you want to key in dots and dashes, and start practicing. Letters turn
             green when you key them correctly and red when you don't. Watch your WPM climb.
           </p>
         </section>
 
-        <section className="space-y-3">
-          <h2 className="font-mono text-xl text-(--color-main)">two practice modes</h2>
-          <ul className="text-(--color-sub) space-y-2 list-disc pl-5">
-            <li><b className="text-(--color-text)">learn</b> — each letter is shown with its Morse code below. Beginner-friendly.</li>
-            <li><b className="text-(--color-text)">test</b> — letters only. Recall the Morse from memory.</li>
-          </ul>
-        </section>
+        <Section title="two practice modes">
+          <List items={[
+            ["learn", "each letter is shown with its Morse code below. beginner-friendly."],
+            ["test", "letters only. recall the Morse from memory."],
+          ]} />
+        </Section>
 
-        <section className="space-y-3">
-          <h2 className="font-mono text-xl text-(--color-main)">three input schemes</h2>
-          <ul className="text-(--color-sub) space-y-2 list-disc pl-5">
-            <li><b className="text-(--color-text)">single key (paddle)</b> — Spacebar. A short tap is a dit; holding longer than 2 units is a dah. Hardest — tests your timing.</li>
-            <li><b className="text-(--color-text)">two keys</b> — <code>J</code> = dit, <code>K</code> = dah. Balanced.</li>
-            <li><b className="text-(--color-text)">literal</b> — <code>.</code> = dit, <code>-</code> = dah. Easiest.</li>
-          </ul>
-        </section>
+        <Section title="three input schemes">
+          <List items={[
+            ["single key (paddle)", "spacebar. tap = dit; holding longer = dah. hardest — tests timing."],
+            ["two keys", "j = dit, k = dah. balanced."],
+            ["literal", ". = dit, - = dah. easiest."],
+          ]} />
+        </Section>
 
-        <section className="space-y-3">
-          <h2 className="font-mono text-xl text-(--color-main)">itu timing</h2>
-          <p className="text-(--color-sub) leading-relaxed max-w-2xl">
+        <Section title="itu timing">
+          <p className="text-(--color-sub-strong) leading-relaxed max-w-2xl text-sm">
             International Morse uses one base unit (the dit). A dah is 3 units. The pause
             between symbols inside a letter is 1 unit, between letters is 3 units, and
             between words is <b className="text-(--color-text)">7 units</b>. In auto-timing
             mode, MorseType detects letter and word breaks from these pauses. In explicit
-            mode, press <code>Space</code> for a letter break and <code>Enter</code> for a
-            word break.
+            mode, press <code className="text-(--color-main)">space</code> for a letter break and{" "}
+            <code className="text-(--color-main)">enter</code> for a word break.
           </p>
-        </section>
+        </Section>
 
-        <section className="space-y-3">
-          <h2 className="font-mono text-xl text-(--color-main)">alphabet</h2>
+        <Section title="alphabet">
           <ChartGrid keys={letters} />
-        </section>
-        <section className="space-y-3">
-          <h2 className="font-mono text-xl text-(--color-main)">numbers</h2>
+        </Section>
+        <Section title="numbers">
           <ChartGrid keys={numbers} />
-        </section>
-        <section className="space-y-3">
-          <h2 className="font-mono text-xl text-(--color-main)">punctuation</h2>
-          <ChartGrid keys={Object.keys(MORSE).filter(k => !/[A-Z0-9]/.test(k))} />
-        </section>
+        </Section>
+        {punctuation.length > 0 && (
+          <Section title="punctuation">
+            <ChartGrid keys={punctuation} />
+          </Section>
+        )}
 
-        <p className="text-(--color-sub) text-xs">
-          shortcuts: <code>tab</code> + <code>enter</code> restart · <code>esc</code> settings
+        <p className="text-(--color-sub-faint) text-[11px] lowercase tracking-wide">
+          shortcuts: <code className="text-(--color-sub)">tab</code> +{" "}
+          <code className="text-(--color-sub)">enter</code> restart ·{" "}
+          <code className="text-(--color-sub)">esc</code> settings
         </p>
       </main>
     </div>
   );
 }
 
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-4">
+      <h2 className="font-mono text-base text-(--color-main) lowercase tracking-tight">
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+function List({ items }: { items: [string, string][] }) {
+  return (
+    <ul className="space-y-2.5 text-sm">
+      {items.map(([k, v]) => (
+        <li key={k} className="flex gap-3">
+          <span className="text-(--color-main) shrink-0">·−</span>
+          <span className="text-(--color-sub-strong)">
+            <b className="text-(--color-text) font-medium">{k}</b> — {v}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function ChartGrid({ keys }: { keys: string[] }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2">
       {keys.map(k => (
-        <div key={k} className="bg-(--color-sub-alt) rounded-md px-3 py-2 flex items-baseline gap-3 font-mono">
-          <span className="text-(--color-text) text-lg w-6">{k}</span>
-          <span className="text-(--color-main) tracking-widest">{MORSE[k]}</span>
+        <div
+          key={k}
+          className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-lg transition-colors"
+          style={{
+            background: "rgba(255, 255, 255, 0.02)",
+            border: "1px solid var(--hairline)",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--main-border)")}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--hairline)")}
+        >
+          <span className="text-(--color-text) text-xl font-semibold font-mono">{k.toUpperCase()}</span>
+          <span className="text-(--color-main) text-[11px] tracking-[2px]">{MORSE[k]}</span>
         </div>
       ))}
     </div>

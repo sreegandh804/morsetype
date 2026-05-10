@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Settings } from "@/lib/morse/storage";
+import { Stat } from "./StatsBar";
 
 interface Props {
   wpm: number;
@@ -43,17 +44,41 @@ export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onR
     toast.success("Submitted to the leaderboard");
   }
 
+  const accColor =
+    acc >= 100 ? "var(--success)" :
+    acc >= 90 ? "var(--main)" :
+    "var(--error)";
+
   return (
-    <div className="flex flex-col items-center gap-8 w-full">
-      <div className="flex flex-wrap items-end justify-center gap-12">
-        <Stat label="wpm" value={Math.round(wpm).toString()} />
-        <Stat label="acc" value={`${Math.round(acc)}%`} />
-        <Stat label="time" value={`${(elapsedMs/1000).toFixed(1)}s`} />
-        <Stat label="chars" value={`${correct}/${correct + incorrect}`} small />
+    <div className="w-full flex flex-col items-center gap-6">
+      <div
+        className="w-full px-8 py-7 rounded-xl text-center"
+        style={{
+          background: "rgba(240, 180, 41, 0.04)",
+          border: "1px solid rgba(240, 180, 41, 0.12)",
+        }}
+      >
+        <div className="text-sm text-(--color-sub-strong) mb-4 tracking-wide lowercase">
+          complete
+        </div>
+        <div className="flex flex-wrap justify-center gap-x-12 gap-y-6 mb-5">
+          <Stat label="wpm" value={Math.round(wpm)} />
+          <Stat label="accuracy" value={`${Math.round(acc)}%`} color={accColor} />
+          <Stat label="correct" value={correct} color="rgba(255,255,255,0.5)" />
+          <Stat
+            label="errors"
+            value={incorrect}
+            color={incorrect > 0 ? "var(--error)" : "rgba(255,255,255,0.3)"}
+          />
+          <Stat label="time" value={`${(elapsedMs / 1000).toFixed(1)}s`} dim />
+        </div>
+        <div className="text-[11px] text-(--color-sub-faint) lowercase tracking-wide">
+          tab + enter → restart
+        </div>
       </div>
 
-      <div className="text-(--color-sub) text-xs">
-        {settings.mode} · {settings.content.replace("_", " ")} · {settings.scheme.replace("_"," ")}
+      <div className="text-(--color-sub-faint) text-[11px] lowercase tracking-wide">
+        {settings.mode} · {settings.content.replace("_", " ")} · {settings.scheme.replace("_", " ")}
       </div>
 
       {!submitted ? (
@@ -63,30 +88,27 @@ export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onR
             onChange={(e) => setName(e.target.value)}
             placeholder="your name"
             maxLength={20}
-            className="w-48 bg-(--color-sub-alt) border-(--color-border) text-(--color-text) font-mono"
+            className="w-48 bg-white/[0.04] border-(--color-border) text-(--color-text) font-mono"
           />
-          <Button type="submit" disabled={submitting || !name.trim()} className="bg-(--color-main) text-(--primary-foreground) hover:bg-(--color-main)/90">
+          <Button
+            type="submit"
+            disabled={submitting || !name.trim()}
+            className="bg-(--color-main) text-(--primary-foreground) hover:bg-(--color-main)/90"
+          >
             submit
           </Button>
         </form>
       ) : (
-        <p className="text-(--color-success) text-sm">saved to the leaderboard</p>
+        <p className="text-(--success) text-sm">saved to the leaderboard</p>
       )}
 
-      <div className="flex gap-3">
-        <Button variant="ghost" onClick={onRestart} className="text-(--color-sub) hover:text-(--color-text)">
-          next test (tab → enter)
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function Stat({ label, value, small }: { label: string; value: string; small?: boolean }) {
-  return (
-    <div className="flex flex-col items-start">
-      <span className="text-(--color-sub) text-sm">{label}</span>
-      <span className={`text-(--color-main) ${small ? "text-3xl" : "text-6xl"} font-bold leading-none`}>{value}</span>
+      <Button
+        variant="ghost"
+        onClick={onRestart}
+        className="text-(--color-sub) hover:text-(--color-text) text-xs lowercase tracking-wide"
+      >
+        next test (tab → enter)
+      </Button>
     </div>
   );
 }

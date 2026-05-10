@@ -14,6 +14,7 @@ const CONTENTS: { key: ContentKind; label: string }[] = [
   { key: "sentences", label: "sentences" },
   { key: "tongue_twisters", label: "twisters" },
   { key: "numbers", label: "numbers" },
+  { key: "drill", label: "drill" },
 ];
 
 const LENGTHS = [10, 25, 50, 100];

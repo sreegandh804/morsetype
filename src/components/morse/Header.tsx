@@ -12,14 +12,15 @@ export function Header() {
       </Link>
       <nav className="flex items-center gap-6 text-[13px] lowercase">
         <NavLink to="/">practice</NavLink>
-        <NavLink to="/about">learn</NavLink>
+        <NavLink to="/learn">learn</NavLink>
+        <NavLink to="/about">reference</NavLink>
         <NavLink to="/leaderboard">leaderboard</NavLink>
       </nav>
     </header>
   );
 }
 
-function NavLink({ to, children }: { to: "/" | "/leaderboard" | "/about"; children: React.ReactNode }) {
+function NavLink({ to, children }: { to: "/" | "/leaderboard" | "/about" | "/learn"; children: React.ReactNode }) {
   return (
     <Link
       to={to}

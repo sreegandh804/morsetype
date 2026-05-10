@@ -1,4 +1,12 @@
-export type ContentKind = "letters" | "words" | "sentences" | "tongue_twisters" | "numbers";
+import { weakChars } from "./mistakes";
+
+export type ContentKind =
+  | "letters"
+  | "words"
+  | "sentences"
+  | "tongue_twisters"
+  | "numbers"
+  | "drill";
 
 const COMMON_WORDS = [
   "the","of","and","to","in","is","you","that","it","he","was","for","on","are","as","with",
@@ -59,5 +67,40 @@ export function generate(kind: ContentKind, wordCount = 25): string {
       while (out.join(" ").split(/\s+/).length < wordCount) out.push(pick(TONGUE_TWISTERS));
       return out.join(" ");
     }
+    case "drill":
+      return generateDrill(wordCount);
   }
+}
+
+/**
+ * Weighted drill: heavily samples the user's weakest characters, mixes in a
+ * little random alphabet for context. Falls back to plain letters when there
+ * is no error history yet.
+ */
+export function generateDrill(wordCount = 25): string {
+  const weak = weakChars(8);
+  const pool: string[] = [];
+  if (weak.length === 0) {
+    return Array.from({ length: wordCount * 3 }, () => pick(LETTERS)).join(" ");
+  }
+  // Weight each weak char by its error rate (min 2 copies, scaled up to 8).
+  for (const w of weak) {
+    const copies = Math.max(2, Math.min(8, Math.round(w.errorRate * 10)));
+    for (let i = 0; i < copies; i++) pool.push(w.char.toLowerCase());
+  }
+  // Sprinkle a few random letters so the drill isn't pure repetition.
+  for (let i = 0; i < weak.length; i++) pool.push(pick(LETTERS));
+
+  const total = wordCount * 3;
+  const out: string[] = [];
+  for (let i = 0; i < total; i++) {
+    // Avoid two of the same char in a row — feels more like real practice.
+    let c = pick(pool);
+    if (out.length && out[out.length - 1] === c) c = pick(pool);
+    out.push(c);
+  }
+  // Group into 3-char "words" for readable spacing.
+  const grouped: string[] = [];
+  for (let i = 0; i < out.length; i += 3) grouped.push(out.slice(i, i + 3).join(""));
+  return grouped.join(" ");
 }

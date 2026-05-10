@@ -10,6 +10,7 @@ import { generate } from "@/lib/morse/content";
 import { calcAccuracy, calcWpm } from "@/lib/morse/wpm";
 import { loadSettings, saveSettings, type Settings } from "@/lib/morse/storage";
 import { MORSE } from "@/lib/morse/alphabet";
+import { recordSession } from "@/lib/morse/mistakes";
 
 type Phase = "idle" | "running" | "done";
 
@@ -114,8 +115,9 @@ export function TypingTest() {
       setPhase("done");
       setElapsedMs(startedAt ? performance.now() - startedAt : 0);
       reset();
+      recordSession(target, errors);
     }
-  }, [typed, target, phase, startedAt, reset]);
+  }, [typed, target, phase, startedAt, reset, errors]);
 
   const correctCount = errors.filter((e, i) => !e && target[i] !== " ").length;
   const incorrectCount = errors.filter((e) => e).length;

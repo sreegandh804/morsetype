@@ -10,6 +10,7 @@ export interface Settings {
   content: ContentKind;
   wordCount: number;
   mode: "learn" | "test";
+  language: string;     // language id (see lib/morse/languages.ts)
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -21,6 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
   content: "letters",
   wordCount: 25,
   mode: "learn",
+  language: "english",
 };
 
 const KEY = "morsetype.settings.v1";

@@ -5,17 +5,20 @@ import { StatsBar } from "./StatsBar";
 import { Results } from "./Results";
 import { SettingsDialog } from "./SettingsDialog";
 import { InputVisualizer } from "./InputVisualizer";
+import { LanguagePicker } from "./LanguagePicker";
 import { useMorseInput } from "@/lib/morse/useMorseInput";
 import { generate } from "@/lib/morse/content";
 import { calcAccuracy, calcWpm } from "@/lib/morse/wpm";
 import { loadSettings, saveSettings, type Settings } from "@/lib/morse/storage";
-import { MORSE } from "@/lib/morse/alphabet";
+import { getLanguage } from "@/lib/morse/languages";
 
 type Phase = "idle" | "running" | "done";
 
 export function TypingTest() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
-  const [target, setTarget] = useState(() => generate(settings.content, settings.wordCount));
+  const [target, setTarget] = useState(() =>
+    generate(settings.content, settings.wordCount, settings.language),
+  );
   const [typed, setTyped] = useState<string>("");
   const [errors, setErrors] = useState<boolean[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -34,7 +37,7 @@ export function TypingTest() {
   }
 
   function restart(nextSettings = settings) {
-    setTarget(generate(nextSettings.content, nextSettings.wordCount));
+    setTarget(generate(nextSettings.content, nextSettings.wordCount, nextSettings.language));
     setTyped("");
     setErrors([]);
     setPhase("idle");
@@ -42,8 +45,10 @@ export function TypingTest() {
     setElapsedMs(0);
   }
 
-  // restart whenever content/length changes
-  useEffect(() => { restart(settings); /* eslint-disable-next-line */ }, [settings.content, settings.wordCount]);
+  // restart whenever content/length/language changes
+  useEffect(() => {
+    restart(settings); /* eslint-disable-next-line */
+  }, [settings.content, settings.wordCount, settings.language]);
 
   // tick timer
   useEffect(() => {
@@ -51,16 +56,31 @@ export function TypingTest() {
     tickRef.current = window.setInterval(() => {
       setElapsedMs(performance.now() - startedAt);
     }, 100);
-    return () => { if (tickRef.current) window.clearInterval(tickRef.current); };
+    return () => {
+      if (tickRef.current) window.clearInterval(tickRef.current);
+    };
   }, [phase, startedAt]);
 
   // global keyboard: Tab+Enter restart, Esc settings
   useEffect(() => {
     let tabPressed = false;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") { e.preventDefault(); setSettingsOpen((o) => !o); return; }
-      if (e.key === "Tab") { e.preventDefault(); tabPressed = true; return; }
-      if (e.key === "Enter" && tabPressed) { e.preventDefault(); tabPressed = false; restart(); return; }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSettingsOpen((o) => !o);
+        return;
+      }
+      if (e.key === "Tab") {
+        e.preventDefault();
+        tabPressed = true;
+        return;
+      }
+      if (e.key === "Enter" && tabPressed) {
+        e.preventDefault();
+        tabPressed = false;
+        restart();
+        return;
+      }
       if (e.key !== "Tab") tabPressed = false;
     }
     window.addEventListener("keydown", onKey);
@@ -98,6 +118,12 @@ export function TypingTest() {
     }
   }
 
+  const lang = useMemo(() => getLanguage(settings.language), [settings.language]);
+  const reverseMorse = useMemo(
+    () => Object.fromEntries(Object.entries(lang.morse).map(([k, v]) => [v, k])),
+    [lang],
+  );
+
   const enabled = phase !== "done" && !settingsOpen;
   const { currentMorse, reset } = useMorseInput({
     scheme: settings.scheme,
@@ -105,6 +131,7 @@ export function TypingTest() {
     unitMs: settings.unitMs,
     audio: settings.audio,
     enabled,
+    reverseMorse,
     onChar: handleChar,
   });
 
@@ -126,33 +153,43 @@ export function TypingTest() {
   const currentChar = target[typed.length];
   const targetMorse =
     currentChar && currentChar !== " "
-      ? MORSE[currentChar.toUpperCase()] ?? null
+      ? (lang.morse[currentChar] ?? lang.morse[currentChar.toUpperCase()] ?? null)
       : null;
   const hint =
-    settings.scheme === "paddle" ? "space = tap dit · hold dah" :
-    settings.scheme === "two_key" ? "j = dit · k = dah" :
-    ". = dit · - = dah";
+    settings.scheme === "paddle"
+      ? "space = tap dit · hold dah"
+      : settings.scheme === "two_key"
+        ? "j = dit · k = dah"
+        : ". = dit · - = dah";
 
   return (
     <div className="flex flex-col items-center w-full max-w-3xl mx-auto px-8">
       <div className="mb-8">
-        <ModeBar settings={settings} onChange={patchSettings} onOpenSettings={() => setSettingsOpen(true)} />
+        <ModeBar
+          settings={settings}
+          onChange={patchSettings}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
       </div>
 
       {phase !== "done" ? (
         <>
-          <InputVisualizer
-            currentInput={currentMorse}
-            targetMorse={targetMorse}
-            hint={hint}
-          />
+          <InputVisualizer currentInput={currentMorse} targetMorse={targetMorse} hint={hint} />
           <div className="w-full">
+            <div className="flex justify-center mb-1">
+              <LanguagePicker
+                value={settings.language}
+                onChange={(id) => patchSettings({ language: id })}
+              />
+            </div>
             <MorsePrompt
               target={target}
               typed={typed}
               errors={errors}
               showHints={settings.showHints || settings.mode === "learn"}
               currentMorse={currentMorse}
+              morse={lang.morse}
+              rtl={lang.rtl}
             />
           </div>
           <div className="w-full mt-6">
@@ -179,7 +216,12 @@ export function TypingTest() {
         />
       )}
 
-      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} settings={settings} onChange={patchSettings} />
+      <SettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        settings={settings}
+        onChange={patchSettings}
+      />
     </div>
   );
 }
@@ -189,17 +231,29 @@ function InputHelp({ scheme, gapMode }: { scheme: string; gapMode: string }) {
     scheme === "paddle"
       ? [{ k: "space", v: "tap dit · hold dah" }]
       : scheme === "two_key"
-        ? [{ k: "j", v: "dit" }, { k: "k", v: "dah" }]
-        : [{ k: ".", v: "dit" }, { k: "-", v: "dah" }];
+        ? [
+            { k: "j", v: "dit" },
+            { k: "k", v: "dah" },
+          ]
+        : [
+            { k: ".", v: "dit" },
+            { k: "-", v: "dah" },
+          ];
   const gapHint = gapMode === "auto" ? "auto-timing" : "space = letter · enter = word";
   return (
     <div className="mt-6 text-[11px] text-(--color-sub-faint) flex flex-wrap justify-center gap-x-5 gap-y-1 lowercase tracking-wide">
-      {inputHints.map(h => (
-        <span key={h.k}><span className="text-(--color-sub) font-medium">{h.k}</span> = {h.v}</span>
+      {inputHints.map((h) => (
+        <span key={h.k}>
+          <span className="text-(--color-sub) font-medium">{h.k}</span> = {h.v}
+        </span>
       ))}
       <span>{gapHint}</span>
-      <span><span className="text-(--color-sub) font-medium">tab</span> = restart</span>
-      <span><span className="text-(--color-sub) font-medium">esc</span> = settings</span>
+      <span>
+        <span className="text-(--color-sub) font-medium">tab</span> = restart
+      </span>
+      <span>
+        <span className="text-(--color-sub) font-medium">esc</span> = settings
+      </span>
     </div>
   );
 }

@@ -11,6 +11,8 @@ export interface MorseInputOptions {
   unitMs: number; // dit length in ms (e.g. 60ms = 20 wpm)
   audio: boolean;
   enabled: boolean;
+  /** Decoder table mapping morse string -> character. Defaults to International (English) Morse. */
+  reverseMorse?: Record<string, string>;
   onChar: (ch: string) => void; // emits decoded letter, or " " for word break, or "?" for unknown
   onSymbol?: (s: "." | "-") => void; // for live preview of current letter
   onReset?: () => void; // current-letter buffer cleared
@@ -38,7 +40,8 @@ export function useMorseInput(opts: MorseInputOptions) {
     const o = optsRef.current;
     const b = buf.current;
     if (!b) return;
-    const decoded = REVERSE_MORSE[b] ?? "?";
+    const table = o.reverseMorse ?? REVERSE_MORSE;
+    const decoded = table[b] ?? "?";
     o.onChar(decoded);
     buf.current = "";
     setCurrent("");

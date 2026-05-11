@@ -5,7 +5,7 @@ import { StatsBar } from "./StatsBar";
 import { Results } from "./Results";
 import { SettingsDialog } from "./SettingsDialog";
 import { InputVisualizer } from "./InputVisualizer";
-import { PaperTape } from "./PaperTape";
+import { TransmissionLog } from "./TransmissionLog";
 import { useMorseInput } from "@/lib/morse/useMorseInput";
 import { generate } from "@/lib/morse/content";
 import { calcAccuracy, calcWpm } from "@/lib/morse/wpm";
@@ -26,7 +26,7 @@ export function TypingTest() {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [invalidAt, setInvalidAt] = useState<number | null>(null);
-  const [symbolHistory, setSymbolHistory] = useState("");
+  const [letterHistory, setLetterHistory] = useState<{ symbols: string; correct: boolean }[]>([]);
 
   const tickRef = useRef<number | null>(null);
 
@@ -46,17 +46,15 @@ export function TypingTest() {
     setStartedAt(null);
     setElapsedMs(0);
     setInvalidAt(null);
-    setSymbolHistory("");
+    setLetterHistory([]);
   }
 
-  function handleSymbol(s: "." | "-") {
-    setSymbolHistory((h) => h + s);
-  }
-
-  function handleInvalid() {
+  function handleInvalid(symbols: string) {
     if (phase === "done") return;
     setInvalidAt(performance.now());
-    setSymbolHistory((h) => h + " ");
+    if (symbols.length > 0) {
+      setLetterHistory((h) => [...h, { symbols, correct: false }]);
+    }
   }
 
   function handleBackspace() {
@@ -64,7 +62,7 @@ export function TypingTest() {
     if (typed.length === 0) return;
     setTyped((s) => s.slice(0, -1));
     setErrors((e) => e.slice(0, -1));
-    setSymbolHistory((h) => h.replace(/[ /]+$/, "").slice(0, -1));
+    setLetterHistory((h) => h.slice(0, -1));
     if (typed.length === 1) {
       setPhase("idle");
       setStartedAt(null);
@@ -102,7 +100,7 @@ export function TypingTest() {
     return () => window.removeEventListener("keydown", onKey);
   }, [settings, target, settingsOpen]);
 
-  function handleChar(decoded: string) {
+  function handleChar(decoded: string, symbols: string) {
     if (phase === "done") return;
     if (phase === "idle") {
       const t = performance.now();
@@ -117,22 +115,22 @@ export function TypingTest() {
       if (expected === " ") {
         setTyped((s) => s + " ");
         setErrors((e) => [...e, false]);
-        setSymbolHistory((h) => h + "/");
       }
       return;
     }
 
-    // For a normal letter: compare case-insensitively to expected
+    let ok: boolean;
     if (expected === " ") {
       // user produced a letter where a space was expected — count as error and advance
-      setTyped((s) => s + decoded);
-      setErrors((e) => [...e, true]);
+      ok = false;
     } else {
-      const ok = decoded.toUpperCase() === expected.toUpperCase();
-      setTyped((s) => s + decoded);
-      setErrors((e) => [...e, !ok]);
+      ok = decoded.toUpperCase() === expected.toUpperCase();
     }
-    setSymbolHistory((h) => h + " ");
+    setTyped((s) => s + decoded);
+    setErrors((e) => [...e, !ok]);
+    if (symbols.length > 0) {
+      setLetterHistory((h) => [...h, { symbols, correct: ok }]);
+    }
   }
 
   const enabled = phase !== "done" && !settingsOpen;
@@ -146,15 +144,13 @@ export function TypingTest() {
     onChar: handleChar,
     onInvalid: handleInvalid,
     onBackspace: handleBackspace,
-    onSymbol: handleSymbol,
   });
 
-  // detect completion
+  // detect completion — wait for last letter's transmit animation to play,
+  // then trigger View Transition into Results
   useEffect(() => {
     if (phase === "running" && typed.length >= target.length) {
       const finalElapsed = startedAt ? performance.now() - startedAt : 0;
-      // 73 — CW shorthand for "best regards" (7 = --..., 3 = ...--)
-      setSymbolHistory((h) => h + " / --... ...-- ");
       const reduced =
         typeof window !== "undefined" &&
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -166,7 +162,9 @@ export function TypingTest() {
       const doc = document as Document & {
         startViewTransition?: (cb: () => void) => unknown;
       };
-      const delay = reduced ? 0 : 760;
+      // 560ms = letter-transmit (540ms) + small buffer so the animation lands
+      // before View Transition unmounts MorsePrompt
+      const delay = reduced ? 0 : 560;
       const t = window.setTimeout(() => {
         if (!reduced && typeof doc.startViewTransition === "function") {
           doc.startViewTransition(complete);
@@ -238,7 +236,7 @@ export function TypingTest() {
               streak={streak}
             />
           </div>
-          <PaperTape symbols={symbolHistory} idle={phase === "idle" && symbolHistory.length === 0} />
+          <TransmissionLog letters={letterHistory} current={currentMorse} />
           <InputHelp scheme={settings.scheme} gapMode={settings.gapMode} />
         </>
       ) : (

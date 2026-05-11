@@ -48,7 +48,7 @@ export function StatsBar({ wpm, acc, elapsedMs, total, typed, active, streak = 0
           style={{
             width: `${pct}%`,
             opacity: active ? 1 : 0.4,
-            transition: "width 220ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 200ms ease",
+            transition: "width 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         />
       </div>

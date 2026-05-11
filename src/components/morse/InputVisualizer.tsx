@@ -75,14 +75,7 @@ export function InputVisualizer({
   ].filter(Boolean).join(" ");
 
   return (
-    <div className="relative flex flex-col items-center justify-center h-14 mb-3 gap-2">
-      {completePulse && (
-        <span className="absolute inset-0 pointer-events-none" aria-hidden>
-          <span className="signal-ripple" key={`r1-${currentInput}`} />
-          <span className="signal-ripple delayed" key={`r2-${currentInput}`} />
-          <span className="signal-ripple delayed-2" key={`r3-${currentInput}`} />
-        </span>
-      )}
+    <div className="flex flex-col items-center justify-center h-14 mb-3 gap-2">
       <div className={rowClasses} aria-live="polite">
         {symbols.map((sym, i) => {
           if (isPaddleHeld && i === typed.length) {

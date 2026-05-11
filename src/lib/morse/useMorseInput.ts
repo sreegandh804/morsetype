@@ -12,8 +12,8 @@ export interface MorseInputOptions {
   audio: boolean;
   pitchHz: number;
   enabled: boolean;
-  onChar: (ch: string) => void;
-  onInvalid?: () => void;
+  onChar: (ch: string, symbols: string) => void;
+  onInvalid?: (symbols: string) => void;
   onBackspace?: () => void;
   onSymbol?: (s: "." | "-") => void;
   onReset?: () => void;
@@ -47,15 +47,15 @@ export function useMorseInput(opts: MorseInputOptions) {
     setLastSymbolAt(null);
     o.onReset?.();
     if (decoded === undefined) {
-      o.onInvalid?.();
+      o.onInvalid?.(b);
       return;
     }
-    o.onChar(decoded);
+    o.onChar(decoded, b);
   }
 
   function emitWord() {
     flushLetter();
-    optsRef.current.onChar(" ");
+    optsRef.current.onChar(" ", "");
     setLastSymbolAt(null);
   }
 

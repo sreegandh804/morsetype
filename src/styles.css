@@ -46,6 +46,9 @@
   --color-surface-1: var(--surface-1);
   --color-surface-2: var(--surface-2);
   --font-display: var(--font-display);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root,
@@ -209,7 +212,7 @@
     color: var(--color-text);
     font-family: var(--font-mono);
     -webkit-font-smoothing: antialiased;
-    transition: background-color 250ms ease, color 250ms ease;
+    transition: background-color 220ms var(--ease-out-quint), color 220ms var(--ease-out-quint);
   }
   ::selection { background: var(--color-main); color: var(--primary-foreground); }
 }
@@ -229,12 +232,12 @@
   .prompt-caret {
     transform-origin: bottom;
     animation:
-      caret-in 180ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
-      blink 1s steps(1) infinite 220ms;
+      caret-in 140ms var(--ease-out-quint) backwards,
+      blink 1s steps(1) infinite 180ms;
   }
   @keyframes caret-in {
-    from { opacity: 0; transform: scaleY(0.5) translateY(2px); }
-    to   { opacity: 1; transform: scaleY(1) translateY(0); }
+    from { opacity: 0; transform: scaleY(0.6); }
+    to   { opacity: 1; transform: scaleY(1); }
   }
 
   .pill {
@@ -246,9 +249,9 @@
     color: var(--color-sub);
     background: transparent;
     transition:
-      color 150ms ease,
-      background 150ms ease,
-      transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      color 150ms var(--ease-out-quint),
+      background 150ms var(--ease-out-quint),
+      transform 120ms var(--ease-out-quint);
     cursor: pointer;
     font-size: 0.75rem;
     font-weight: 400;
@@ -258,8 +261,8 @@
   }
   .pill:hover { color: var(--color-sub-strong); }
   .pill:active {
-    transform: scale(0.96);
-    transition: transform 80ms ease;
+    transform: scale(0.97);
+    transition: transform 70ms var(--ease-out-quint);
   }
   .pill[data-active="true"] {
     color: var(--color-main);
@@ -316,150 +319,106 @@
   }
 
   .pellet-in {
-    animation: pellet-in 340ms cubic-bezier(0.34, 1.7, 0.55, 1) backwards;
+    animation: pellet-in 220ms var(--ease-out-quint) backwards;
   }
   @keyframes pellet-in {
-    0%   { transform: scale(0) rotate(-4deg); opacity: 0; }
-    45%  { transform: scale(1.35) rotate(2deg); opacity: 1; }
-    70%  { transform: scale(0.88) rotate(0deg); }
-    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
   }
 
   .imv-shake {
-    animation: imv-shake 240ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    animation: imv-shake 200ms var(--ease-out-quint);
   }
   @keyframes imv-shake {
     0%, 100% { transform: translateX(0); }
-    15%      { transform: translateX(-6px); }
-    35%      { transform: translateX(6px); }
-    55%      { transform: translateX(-4px); }
-    80%      { transform: translateX(3px); }
+    25%      { transform: translateX(-5px); }
+    70%      { transform: translateX(5px); }
   }
 
   .imv-pulse {
-    animation: imv-pulse 320ms ease-out;
+    animation: imv-pulse 260ms var(--ease-out-quint);
   }
   @keyframes imv-pulse {
     0%   { filter: brightness(1); transform: scale(1); }
-    35%  { filter: brightness(1.6); transform: scale(1.12); }
+    45%  { filter: brightness(1.5); transform: scale(1.08); }
     100% { filter: brightness(1); transform: scale(1); }
   }
 
-  .paper-tape {
+  .transmission-log {
     width: 100%;
     max-width: 36rem;
-    height: 36px;
-    margin: 1.5rem auto 0;
-    overflow: hidden;
-    position: relative;
+    margin: 1.75rem auto 0;
+    padding: 0.625rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem 0.875rem;
     border-top: 1px dashed var(--color-hairline);
-    border-bottom: 1px dashed var(--color-hairline);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    min-height: 30px;
   }
-  .paper-tape-inner {
-    display: flex;
+  .transmission-log-empty {
+    border-top: 1px dashed transparent;
+    min-height: 30px;
+  }
+  .tlog-letter {
+    display: inline-flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 4px;
-    height: 100%;
-    padding: 0 16px;
-    min-width: 100%;
-  }
-  .paper-tape-idle-inner {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    height: 100%;
-    padding: 0 16px;
-    width: max-content;
-    animation: tape-idle-scroll 42s linear infinite;
-  }
-  @keyframes tape-idle-scroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-  }
-  .tape-ambient {
-    opacity: 0.32;
-    box-shadow: none;
-    animation: none;
+    gap: 3px;
   }
   .tape-mark {
     display: inline-block;
     height: 7px;
-    background: var(--color-main);
     border-radius: 1px;
     flex-shrink: 0;
-    box-shadow: 0 0 6px -2px var(--color-main);
-    animation: tape-enter 320ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    animation: tape-enter 180ms var(--ease-out-quint) backwards;
   }
   .tape-dit { width: 7px; }
-  .tape-dah { width: 22px; }
-  .tape-gap-letter {
-    display: inline-block;
-    width: 8px;
-    flex-shrink: 0;
+  .tape-dah { width: 20px; }
+  .tlog-letter[data-correct="true"] .tape-mark {
+    background: var(--color-main);
+    box-shadow: 0 0 6px -3px var(--color-main);
   }
-  .tape-gap-word {
-    display: inline-block;
-    width: 22px;
-    flex-shrink: 0;
-    height: 7px;
-    border-left: 1px solid var(--color-sub-faint);
-    margin-left: 6px;
+  .tlog-letter[data-correct="false"] .tape-mark {
+    background: var(--color-error);
+    box-shadow: 0 0 6px -3px var(--color-error);
+    opacity: 0.9;
+  }
+  .tlog-current .tape-mark {
+    background: var(--color-sub-strong);
+    box-shadow: none;
+    opacity: 0.7;
   }
   @keyframes tape-enter {
-    0%   { transform: translateX(28px) scale(0.5); opacity: 0; }
-    60%  { transform: translateX(0) scale(1.18); opacity: 1; }
-    100% { transform: translateX(0) scale(1); opacity: 1; }
+    from { transform: scale(0.6); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
   }
 
   .morse-letter {
     transform-origin: center bottom;
   }
   .morse-letter[data-state="current"] {
-    animation: letter-current 240ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-    transform: scale(1.12);
+    animation: letter-current 180ms var(--ease-out-quint) backwards;
+    transform: scale(1.10);
   }
   @keyframes letter-current {
     from { transform: scale(1); }
-    to   { transform: scale(1.12); }
+    to   { transform: scale(1.10); }
   }
   .morse-letter[data-state="done"] {
-    animation: letter-transmit 540ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    animation: letter-transmit 420ms var(--ease-out-expo) backwards;
   }
   @keyframes letter-transmit {
-    0%   { transform: scale(1.12); filter: brightness(1.4); }
-    35%  { transform: scale(1.32) translateY(-4px); filter: brightness(2.2); }
+    0%   { transform: scale(1.10) translateY(0); filter: brightness(1.4); }
+    40%  { transform: scale(1.16) translateY(-3px); filter: brightness(1.85); }
     100% { transform: scale(1) translateY(0); filter: brightness(1); }
   }
   .morse-letter[data-state="error"] {
-    animation: letter-error 320ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    animation: letter-error 240ms var(--ease-out-quint) backwards;
   }
   @keyframes letter-error {
-    0%   { transform: scale(1.12); }
-    25%  { transform: scale(1.18) translateX(3px); }
-    60%  { transform: scale(1.08) translateX(-3px); }
-    100% { transform: scale(1) translateX(0); }
-  }
-
-  .signal-ripple {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    pointer-events: none;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    border: 2px solid var(--color-main);
-    transform: translate(-50%, -50%);
-    animation: signal-ripple 720ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-  }
-  .signal-ripple.delayed { animation-delay: 140ms; }
-  .signal-ripple.delayed-2 { animation-delay: 280ms; opacity: 0.6; }
-  @keyframes signal-ripple {
-    0%   { width: 24px; height: 24px; opacity: 0.7; border-width: 2px; }
-    100% { width: 360px; height: 360px; opacity: 0; border-width: 0.5px; }
+    0%, 100% { transform: scale(1) translateX(0); }
+    25%      { transform: translateX(4px); }
+    70%      { transform: translateX(-4px); }
   }
 
   .font-display {
@@ -467,16 +426,21 @@
   }
 }
 
-::view-transition-old(prompt-area),
-::view-transition-new(prompt-area) {
-  animation-duration: 360ms;
-  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+::view-transition-old(prompt-area) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-::view-transition-old(results-card),
+::view-transition-new(prompt-area) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+::view-transition-old(results-card) {
+  animation-duration: 200ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
 ::view-transition-new(results-card) {
-  animation-duration: 360ms;
-  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  animation-duration: 340ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {

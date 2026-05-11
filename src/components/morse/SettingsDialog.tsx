@@ -100,20 +100,78 @@ export function SettingsDialog({ open, onOpenChange, settings, onChange }: Props
               <Switch checked={settings.audio} onCheckedChange={(b) => onChange({ audio: b })} />
             </div>
             {settings.audio && (
-              <div className="mt-3">
+              <div className="mt-3 space-y-4">
+                <div>
+                  <Label className="text-(--color-sub) text-[11px] uppercase tracking-wider">mode</Label>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {(["tone", "sounder"] as const).map((m) => {
+                      const active = settings.audioMode === m;
+                      return (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => onChange({ audioMode: m })}
+                          className={`rounded-md border p-2 text-left text-[12px] ${active ? "border-(--color-main) text-(--color-main)" : "border-(--color-border) text-(--color-sub-strong) hover:border-(--color-sub)"}`}
+                        >
+                          <div className="font-medium">{m === "tone" ? "tone" : "sounder"}</div>
+                          <div className="text-(--color-sub-faint) text-[10px] leading-tight mt-0.5">
+                            {m === "tone" ? "sine sidetone beep" : "mechanical click·clack"}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {settings.audioMode === "tone" && (
+                  <>
                 <div className="flex items-center justify-between mb-2">
                   <Label className="text-(--color-sub) text-[11px] uppercase tracking-wider">pitch</Label>
                   <span className="text-(--color-main) font-mono text-xs">{settings.pitchHz} Hz</span>
                 </div>
                 <Slider
-                  min={400}
+                  min={450}
                   max={900}
                   step={10}
                   value={[settings.pitchHz]}
                   onValueChange={([v]) => onChange({ pitchHz: v })}
                 />
+                <div>
+                  <Label className="text-(--color-sub) text-[11px] uppercase tracking-wider">waveform</Label>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {(["sine", "square", "triangle"] as const).map((w) => {
+                      const active = settings.waveform === w;
+                      return (
+                        <button
+                          key={w}
+                          type="button"
+                          onClick={() => onChange({ waveform: w })}
+                          className={`rounded-md border px-2 py-1.5 text-[12px] ${active ? "border-(--color-main) text-(--color-main)" : "border-(--color-border) text-(--color-sub-strong) hover:border-(--color-sub)"}`}
+                        >
+                          {w}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                  </>
+                )}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-(--color-sub) text-[11px] uppercase tracking-wider block">vintage radio</Label>
+                    <span className="text-(--color-sub-faint) text-[10px]">band-pass + room reverb</span>
+                  </div>
+                  <Switch checked={settings.vintage} onCheckedChange={(b) => onChange({ vintage: b })} />
+                </div>
               </div>
             )}
+          </section>
+
+          <section className="flex items-center justify-between">
+            <div>
+              <Label className="text-(--color-sub) text-xs uppercase tracking-wider block">telegraph key</Label>
+              <span className="text-(--color-sub-faint) text-[10px]">show key animation in corner</span>
+            </div>
+            <Switch checked={settings.showKey} onCheckedChange={(b) => onChange({ showKey: b })} />
           </section>
 
           <section className="flex items-center justify-between">

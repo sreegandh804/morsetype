@@ -153,22 +153,28 @@ export function TypingTest() {
   useEffect(() => {
     if (phase === "running" && typed.length >= target.length) {
       const finalElapsed = startedAt ? performance.now() - startedAt : 0;
+      // 73 — CW shorthand for "best regards" (7 = --..., 3 = ...--)
+      setSymbolHistory((h) => h + " / --... ...-- ");
+      const reduced =
+        typeof window !== "undefined" &&
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       const complete = () => {
         setPhase("done");
         setElapsedMs(finalElapsed);
         reset();
       };
-      const reduced =
-        typeof window !== "undefined" &&
-        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       const doc = document as Document & {
         startViewTransition?: (cb: () => void) => unknown;
       };
-      if (!reduced && typeof doc.startViewTransition === "function") {
-        doc.startViewTransition(complete);
-      } else {
-        complete();
-      }
+      const delay = reduced ? 0 : 760;
+      const t = window.setTimeout(() => {
+        if (!reduced && typeof doc.startViewTransition === "function") {
+          doc.startViewTransition(complete);
+        } else {
+          complete();
+        }
+      }, delay);
+      return () => window.clearTimeout(t);
     }
   }, [typed, target, phase, startedAt, reset]);
 
@@ -177,6 +183,16 @@ export function TypingTest() {
   const totalChars = typed.replace(/\s/g, "").length;
   const wpm = useMemo(() => calcWpm(correctCount, elapsedMs || 1), [correctCount, elapsedMs]);
   const acc = calcAccuracy(correctCount, totalChars);
+
+  const streak = useMemo(() => {
+    let s = 0;
+    for (let i = errors.length - 1; i >= 0; i--) {
+      if (target[i] === " ") continue;
+      if (errors[i] === false) s++;
+      else break;
+    }
+    return s;
+  }, [errors, target]);
 
   const currentChar = target[typed.length];
   const targetMorse =
@@ -219,9 +235,10 @@ export function TypingTest() {
               total={target.length}
               typed={typed.length}
               active={phase === "running"}
+              streak={streak}
             />
           </div>
-          <PaperTape symbols={symbolHistory} />
+          <PaperTape symbols={symbolHistory} idle={phase === "idle" && symbolHistory.length === 0} />
           <InputHelp scheme={settings.scheme} gapMode={settings.gapMode} />
         </>
       ) : (

@@ -366,6 +366,24 @@
     padding: 0 16px;
     min-width: 100%;
   }
+  .paper-tape-idle-inner {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    padding: 0 16px;
+    width: max-content;
+    animation: tape-idle-scroll 42s linear infinite;
+  }
+  @keyframes tape-idle-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .tape-ambient {
+    opacity: 0.32;
+    box-shadow: none;
+    animation: none;
+  }
   .tape-mark {
     display: inline-block;
     height: 7px;

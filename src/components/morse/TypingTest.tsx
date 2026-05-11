@@ -158,6 +158,10 @@ export function TypingTest() {
         setPhase("done");
         setElapsedMs(finalElapsed);
         reset();
+        if (tickRef.current) {
+          window.clearInterval(tickRef.current);
+          tickRef.current = null;
+        }
       };
       const doc = document as Document & {
         startViewTransition?: (cb: () => void) => unknown;

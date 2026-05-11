@@ -18,7 +18,7 @@ type Phase = "idle" | "running" | "done";
 export function TypingTest() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   useApplyTheme(settings.theme);
-  const [target, setTarget] = useState(() => generate(settings.content, settings.wordCount));
+  const [target, setTarget] = useState(() => generate(settings.content, settings.wordCount, settings.rank));
   const [typed, setTyped] = useState<string>("");
   const [errors, setErrors] = useState<boolean[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -39,7 +39,7 @@ export function TypingTest() {
   }
 
   function restart(nextSettings = settings) {
-    setTarget(generate(nextSettings.content, nextSettings.wordCount));
+    setTarget(generate(nextSettings.content, nextSettings.wordCount, nextSettings.rank));
     setTyped("");
     setErrors([]);
     setPhase("idle");
@@ -71,7 +71,7 @@ export function TypingTest() {
   }
 
   // restart whenever content/length changes
-  useEffect(() => { restart(settings); /* eslint-disable-next-line */ }, [settings.content, settings.wordCount]);
+  useEffect(() => { restart(settings); /* eslint-disable-next-line */ }, [settings.content, settings.wordCount, settings.rank]);
 
   // tick timer
   useEffect(() => {
@@ -140,6 +140,9 @@ export function TypingTest() {
     unitMs: settings.unitMs,
     audio: settings.audio,
     pitchHz: settings.pitchHz,
+    audioMode: settings.audioMode,
+    waveform: settings.waveform,
+    vintage: settings.vintage,
     enabled,
     onChar: handleChar,
     onInvalid: handleInvalid,

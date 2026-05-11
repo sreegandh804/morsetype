@@ -1,131 +1,107 @@
-# MorseType — Monkeytype-style Morse Code Trainer
+# MorseType v2 — Telegraph Soul + Decode Mode
 
-A keyboard-driven Morse code practice app with Monkeytype's exact UX principles: minimalist, dark, monospace, caret-driven, instant green/red feedback, frictionless restart on Tab+Enter.
+Three additions, all sharing the existing engine and design tokens. Sending stays the primary experience; decoding is a secondary mode reached via a subtle toggle.
 
-## Design (Monkeytype DNA)
+## 1. Telegraph Key Aesthetics & Sound
 
-- Dark warm-charcoal background, signature mustard-yellow accent
-- JetBrains Mono everywhere
-- Centered prompt, dim untyped text → bright current → green correct / red incorrect
-- Top: tiny logo + horizontal pill toolbar (mode | content | time/length | input scheme)
-- Bottom: live `wpm  acc  time` ticker (subtle, only highlighted on the results screen)
-- Results screen: large WPM, accuracy, character chart, "Next test" / "Restart" hints
-- Keyboard-first: `Tab` then `Enter` restarts, `Esc` opens command palette
-- Single dark theme for v1 (Monkeytype "serika dark" inspired)
+**Authentic sounder mode** — Settings → Audio → `tone | sounder`
+- `src/lib/morse/audio.ts` extended with `clack(kind: "down" | "up")`: a short filtered noise burst (band-passed white noise + sharp envelope, ~12 ms down-click, ~8 ms up-click). Synthesized in Web Audio — no audio assets to ship.
+- Down-click on symbol start, up-click on symbol end. For dahs the two clicks are spaced by symbol length, exactly like a real Vibroplex sounder. Tone mode keeps the existing sine beep.
 
-## Features
+**Sidetone tuning** — new Settings → Audio section
+- Pitch slider 450–900 Hz (currently fixed 600).
+- Waveform: sine / square / triangle.
+- "Vintage radio" toggle → routes osc through a `BiquadFilter` (band-pass ~600 Hz, Q ≈ 4) plus a `ConvolverNode` with a synthesized short impulse response (built in code).
 
-### 1. Practice modes
-- **Learn** — Each letter shown WITH its Morse pattern beneath (`A .-`). Beginner-friendly.
-- **Test** — Letters only. Recall from memory. Live green/red per character (Monkeytype-style).
-- **Listen** *(stretch)* — Hear Morse, type the letter.
+**Visual telegraph key** — `src/components/morse/TelegraphKey.tsx`
+- Small SVG (~120×80) pinned bottom-right of the test area.
+- Auto-picks variant from input scheme:
+  - `paddle` / `literal` → straight key (lever pivots down on key-down).
+  - `two_key` → iambic paddle (left = dit, right = dah, each tilts independently).
+- Driven by existing `pressStartAt` from `useMorseInput`. CSS transform with 80 ms ease, respects `prefers-reduced-motion`.
 
-### 2. Content / difficulty
-- **Letters** (random A–Z)
-- **Common words**
-- **Sentences / quotes**
-- **Tongue twisters** (extra challenge)
-- **Numbers & punctuation** (advanced)
-- Length presets: 15s / 30s / 60s / 120s OR 10 / 25 / 50 / 100 words
+**Paper tape printer** — restyle existing `TransmissionLog`
+- Update `.transmission-log` in `src/styles.css`: cream/manila tile background, perforation strips top & bottom (CSS `radial-gradient` dots), inked dits/dahs in dark ink color, faint typewriter letter under each correct cluster.
+- Slow rightward scroll on new symbols (~180 ms `translateX`).
 
-### 3. Input schemes (user-configurable)
-- **Single key (paddle)** — `Space`: tap = dit, hold ≥ threshold = dah. Hardest; tests timing.
-- **Two keys** — `J` = dit, `K` = dah (defaults; remappable).
-- **Literal** — `.` = dit, `-` = dah. Easiest.
-- **Letter/word break detection**:
-  - **Auto-timing** (ITU-standard): 3-unit pause = letter break, 7-unit = word break. Unit length user-set (15–40 WPM).
-  - **Explicit**: `Space` = letter break, `Enter` = word break (when not using Space as paddle).
-- Optional **audio sidetone** (Web Audio, 600 Hz) — toggle on/off.
+## 2. Progressive Difficulty Ranks (replaces "tongue twisters")
 
-### 4. Live stats (Monkeytype parity)
-- WPM (PARIS standard adapted: 50 dit-units per word)
-- Accuracy %
-- Raw CPM
-- Live timer / progress bar
-- Per-character correctness map for results chart
+Replace `tongue_twisters` content with a **Ranks** mode.
 
-### 5. Leaderboard
-- Lovable Cloud table `leaderboard_entries` (name, wpm, accuracy, mode, content, input_scheme, created_at)
-- RLS: public read; public insert with name validation (length 1–20)
-- Top 10 per filter (mode + content)
-- Submit name modal after a completed run
+| Rank | Pool | WPM floor | Punctuation | Prosigns |
+|---|---|---|---|---|
+| Cadet | letters + short common words | 10 wpm | — | — |
+| Operator | common words + short sentences | 15 wpm | `. ,` | — |
+| Sparks | sentences + numbers + callsigns | 20 wpm | `. , ? /` | `<AR> <BT>` |
+| Chief Radioman | long-form + Q-codes + callsigns | 25 wpm | full set | `<AR> <BT> <SK> <KN>` |
 
-### 6. Settings (Esc / gear icon)
-- Input scheme + key bindings
-- WPM unit speed (for auto-timing)
-- Audio on/off + frequency
-- Show Morse hints under letters (forces Learn mode)
-- Reference: full Morse alphabet chart on `/about`
+- New `src/lib/morse/ranks.ts` with `RANKS` config + `generateForRank(rank, wordCount)`.
+- `content.ts`: drop `tongue_twisters`, add a `ranks` content kind that delegates by `settings.rank`.
+- `ModeBar`: replace the `twisters` pill with a 4-pill **rank selector**.
+- Picking a rank auto-bumps `unitMs` to its floor (only if current is slower).
+- Prosigns rendered like `<AR>` and treated as one multi-symbol token (one `flushLetter` after the run-together pattern).
+- Add ham callsigns (`W1AW`, `K3LR`, `G0XYZ`, `VK2ABC`…) and Q-codes (`QTH QSL QRZ QSY QRM`) to the pool.
+- Migration: add `rank` column to `leaderboard_entries`, leaderboard filterable by rank.
 
-## Routes
+## 3. Decode Mode (Receiving Operator desk)
+
+The "other side" — app sends Morse, you type the plaintext.
+
+### Navigation (intuitive, non-primary)
+
+A small two-segment toggle lives in the header next to the logo, not in the main nav:
 
 ```text
-src/routes/
-  __root.tsx          header + theme shell
-  index.tsx           main typing test
-  leaderboard.tsx     rankings, filterable
-  about.tsx           how-to + full Morse chart + ITU timing explainer
+morsetype   [▶ send  · 🎧 receive]    practice   learn   leaderboard
 ```
 
-## Components & lib
+- Left segment is selected by default and active on the home route `/`.
+- Right segment routes to a new `/receive` page.
+- Visually the same `pill` style as `ModeBar` so it feels like part of the practice surface, not a top-level destination. Keyboard shortcut: `Ctrl/Cmd + Shift + R` toggles between them.
+- Both `/` and `/receive` share the header, the `ModeBar` (mode/length/rank/audio/settings), the `StatsBar`, and the `Results` screen — only the middle prompt swaps.
+
+### Audio-only is supported
+
+Yes — confirmed. The receive view has a **"Audio only"** toggle in the audio cluster (next to the existing sound icon). When on:
+- The oscilloscope strip and paper tape both fade to a dim "·" placeholder.
+- Only the typed-text line and a tiny "now playing" pulse remain.
+- Great pure-ear-training mode; perfect for the sounder + vintage radio combo.
+
+When off (default), full operator desk:
 
 ```text
-src/components/
-  TypingTest.tsx      orchestrator
-  MorsePrompt.tsx     dim/bright/green/red character renderer + caret
-  ModeBar.tsx         pills: mode / content / length / input scheme
-  StatsBar.tsx        live wpm / acc / timer
-  Results.tsx         post-test summary + submit-to-leaderboard
-  MorseChart.tsx      reference grid
-  SettingsDialog.tsx  input scheme + key bindings + audio
-  CommandPalette.tsx  Esc-triggered quick switcher (stretch)
-
-src/lib/
-  morse.ts            ITU alphabet map, encode/decode, timing constants
-  useMorseInput.ts    hook: handles all 3 input schemes + auto/explicit gap detection
-  audio.ts            Web Audio sidetone
-  wpm.ts              WPM/accuracy calc
-  storage.ts          settings persistence (localStorage)
+┌─────────────────────────────────────────────────┐
+│  ░░░░  ▓  ░░░░░░  ▓  ░░░░  ▓▓▓  ░░░░  ▓        │  ← live waveform strip
+│                                                 │     (oscilloscope, eye-candy
+│            t h e   q u i _                      │     synced to envelope)
+│                                                 │  ← MorsePrompt in decode mode:
+│                                                 │     hidden target, green = matched
+│                                                 │     red = wrong at that index
+│   ●─── ──● ●●●● ●  ─── ●●─                      │  ← paper tape: what's been SENT
+│                                                 │     so far (toggle on/off)
+└─────────────────────────────────────────────────┘
+        [▶ play]  [⏸ pause]  [↻ replay last word]
 ```
 
-## Design tokens (`src/styles.css`)
+- **Top scope strip**: thin oscilloscope-like line, lights up while a tone plays, synced to audio envelope.
+- **Middle**: existing `MorsePrompt` in decode variant — target hidden until run ends, only typed chars show with green/red.
+- **Bottom paper tape**: repurposed `TransmissionLog` showing what's been transmitted (togglable; default on).
+- Controls: play/pause, replay last word (huge for learning), speed slider, optional Farnsworth toggle.
+- WPM = effective copy WPM (correct chars typed before next letter sent).
 
-oklch dark palette inspired by Monkeytype's serika-dark:
-- `--background` — warm charcoal
-- `--sub` — dim text (untyped)
-- `--text` — bright text (current/typed)
-- `--main` — mustard-yellow accent (caret, active pill, primary)
-- `--success` — green (correct char)
-- `--error` — red (incorrect char)
-- `--sub-alt` — slightly lighter charcoal (cards, dialogs)
+### Implementation sketch
 
-JetBrains Mono via Google Fonts in `__root.tsx` head.
+- New route `src/routes/receive.tsx` and `DecodeTest.tsx` component.
+- Header gains the segmented toggle (`SendReceiveToggle.tsx`).
+- New `src/lib/morse/player.ts` schedules symbols/letter/word gaps using current unit timing, with optional Farnsworth.
+- Reuses `audio.ts` (and the new sounder path) for playback.
+- Input is the regular keyboard (a–z, 0–9, space, punctuation per rank). No morse encoding on the user side.
+- Same `leaderboard_entries` table; add `direction` column (`send` | `decode`) so leaderboards split cleanly.
+- "Audio only" preference persists in `settings.decodeAudioOnly`.
 
-## Backend (Lovable Cloud)
+## Open question
 
-Single migration:
-```sql
-create table leaderboard_entries (
-  id uuid primary key default gen_random_uuid(),
-  name text not null check (char_length(name) between 1 and 20),
-  wpm numeric not null,
-  accuracy numeric not null,
-  mode text not null,
-  content text not null,
-  input_scheme text not null,
-  created_at timestamptz not null default now()
-);
-alter table leaderboard_entries enable row level security;
-create policy "public read" on leaderboard_entries for select using (true);
-create policy "public insert" on leaderboard_entries for insert with check (true);
-create index on leaderboard_entries (mode, content, wpm desc);
-```
+One small confirm before I build:
+- **Rank pill behavior**: when a rank is selected, should the content pool be **driven by the rank** (replacing the `letters / words / sentences / numbers` pills with the rank's curated pool), or stay **additive** (rank only sets difficulty floor; user still picks content)? My recommendation: **driven by rank** — cleaner, matches a real progression, and the existing pills can still be used when "no rank" is selected.
 
-## Out of scope (v1)
-- User accounts / persistent profiles
-- Multiplayer races
-- Multiple themes (one polished dark theme only)
-- Iambic paddle modes A/B
-- Mobile touch input (keyboard-only for v1)
-
-Ready to build — I'll enable Lovable Cloud, set up tokens + fonts, then implement the typing engine, screens, and leaderboard.
+Reply yes/no on the rank behavior and I'll build everything above.

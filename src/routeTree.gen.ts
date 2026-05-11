@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReceiveRouteImport } from './routes/receive'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ReceiveRoute = ReceiveRouteImport.update({
+  id: '/receive',
+  path: '/receive',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/receive': typeof ReceiveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/receive': typeof ReceiveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/receive': typeof ReceiveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/leaderboard'
+  fullPaths: '/' | '/about' | '/leaderboard' | '/receive'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/leaderboard'
-  id: '__root__' | '/' | '/about' | '/leaderboard'
+  to: '/' | '/about' | '/leaderboard' | '/receive'
+  id: '__root__' | '/' | '/about' | '/leaderboard' | '/receive'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   LeaderboardRoute: typeof LeaderboardRoute
+  ReceiveRoute: typeof ReceiveRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/receive': {
+      id: '/receive'
+      path: '/receive'
+      fullPath: '/receive'
+      preLoaderRoute: typeof ReceiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leaderboard': {
       id: '/leaderboard'
       path: '/leaderboard'
@@ -89,7 +106,18 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   LeaderboardRoute: LeaderboardRoute,
+  ReceiveRoute: ReceiveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

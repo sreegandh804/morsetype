@@ -5,6 +5,7 @@ import { StatsBar } from "./StatsBar";
 import { Results } from "./Results";
 import { SettingsDialog } from "./SettingsDialog";
 import { InputVisualizer } from "./InputVisualizer";
+import { PaperTape } from "./PaperTape";
 import { useMorseInput } from "@/lib/morse/useMorseInput";
 import { generate } from "@/lib/morse/content";
 import { calcAccuracy, calcWpm } from "@/lib/morse/wpm";
@@ -25,6 +26,7 @@ export function TypingTest() {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [invalidAt, setInvalidAt] = useState<number | null>(null);
+  const [symbolHistory, setSymbolHistory] = useState("");
 
   const tickRef = useRef<number | null>(null);
 
@@ -44,11 +46,17 @@ export function TypingTest() {
     setStartedAt(null);
     setElapsedMs(0);
     setInvalidAt(null);
+    setSymbolHistory("");
+  }
+
+  function handleSymbol(s: "." | "-") {
+    setSymbolHistory((h) => h + s);
   }
 
   function handleInvalid() {
     if (phase === "done") return;
     setInvalidAt(performance.now());
+    setSymbolHistory((h) => h + " ");
   }
 
   function handleBackspace() {
@@ -56,6 +64,7 @@ export function TypingTest() {
     if (typed.length === 0) return;
     setTyped((s) => s.slice(0, -1));
     setErrors((e) => e.slice(0, -1));
+    setSymbolHistory((h) => h.replace(/[ /]+$/, "").slice(0, -1));
     if (typed.length === 1) {
       setPhase("idle");
       setStartedAt(null);
@@ -108,6 +117,7 @@ export function TypingTest() {
       if (expected === " ") {
         setTyped((s) => s + " ");
         setErrors((e) => [...e, false]);
+        setSymbolHistory((h) => h + "/");
       }
       return;
     }
@@ -122,6 +132,7 @@ export function TypingTest() {
       setTyped((s) => s + decoded);
       setErrors((e) => [...e, !ok]);
     }
+    setSymbolHistory((h) => h + " ");
   }
 
   const enabled = phase !== "done" && !settingsOpen;
@@ -135,6 +146,7 @@ export function TypingTest() {
     onChar: handleChar,
     onInvalid: handleInvalid,
     onBackspace: handleBackspace,
+    onSymbol: handleSymbol,
   });
 
   // detect completion
@@ -209,6 +221,7 @@ export function TypingTest() {
               active={phase === "running"}
             />
           </div>
+          <PaperTape symbols={symbolHistory} />
           <InputHelp scheme={settings.scheme} gapMode={settings.gapMode} />
         </>
       ) : (

@@ -345,6 +345,76 @@
     100% { filter: brightness(1); transform: scale(1); }
   }
 
+  .paper-tape {
+    width: 100%;
+    max-width: 36rem;
+    height: 36px;
+    margin: 1.5rem auto 0;
+    overflow: hidden;
+    position: relative;
+    border-top: 1px dashed var(--color-hairline);
+    border-bottom: 1px dashed var(--color-hairline);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  }
+  .paper-tape-inner {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    height: 100%;
+    padding: 0 16px;
+    min-width: 100%;
+  }
+  .tape-mark {
+    display: inline-block;
+    height: 7px;
+    background: var(--color-main);
+    border-radius: 1px;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px -2px var(--color-main);
+    animation: tape-enter 320ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  }
+  .tape-dit { width: 7px; }
+  .tape-dah { width: 22px; }
+  .tape-gap-letter {
+    display: inline-block;
+    width: 8px;
+    flex-shrink: 0;
+  }
+  .tape-gap-word {
+    display: inline-block;
+    width: 22px;
+    flex-shrink: 0;
+    height: 7px;
+    border-left: 1px solid var(--color-sub-faint);
+    margin-left: 6px;
+  }
+  @keyframes tape-enter {
+    0%   { transform: translateX(28px) scale(0.5); opacity: 0; }
+    60%  { transform: translateX(0) scale(1.18); opacity: 1; }
+    100% { transform: translateX(0) scale(1); opacity: 1; }
+  }
+
+  .signal-ripple {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    border: 2px solid var(--color-main);
+    transform: translate(-50%, -50%);
+    animation: signal-ripple 720ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+  .signal-ripple.delayed { animation-delay: 140ms; }
+  .signal-ripple.delayed-2 { animation-delay: 280ms; opacity: 0.6; }
+  @keyframes signal-ripple {
+    0%   { width: 24px; height: 24px; opacity: 0.7; border-width: 2px; }
+    100% { width: 360px; height: 360px; opacity: 0; border-width: 0.5px; }
+  }
+
   .font-display {
     font-family: var(--font-display);
   }

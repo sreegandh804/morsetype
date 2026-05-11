@@ -226,6 +226,17 @@
   }
   @keyframes blink { 50% { opacity: 0; } }
 
+  .prompt-caret {
+    transform-origin: bottom;
+    animation:
+      caret-in 180ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
+      blink 1s steps(1) infinite 220ms;
+  }
+  @keyframes caret-in {
+    from { opacity: 0; transform: scaleY(0.5) translateY(2px); }
+    to   { opacity: 1; transform: scaleY(1) translateY(0); }
+  }
+
   .pill {
     display: inline-flex;
     align-items: center;
@@ -234,14 +245,22 @@
     border-radius: 0.375rem;
     color: var(--color-sub);
     background: transparent;
-    transition: color 150ms ease, background 150ms ease;
+    transition:
+      color 150ms ease,
+      background 150ms ease,
+      transform 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
     cursor: pointer;
     font-size: 0.75rem;
     font-weight: 400;
     font-family: var(--font-mono);
     border: none;
+    transform: scale(1);
   }
   .pill:hover { color: var(--color-sub-strong); }
+  .pill:active {
+    transform: scale(0.96);
+    transition: transform 80ms ease;
+  }
   .pill[data-active="true"] {
     color: var(--color-main);
     background: var(--color-main-soft);
@@ -297,7 +316,53 @@
     to { transform: scaleX(0); }
   }
 
+  .pellet-in {
+    animation: pellet-in 220ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  }
+  @keyframes pellet-in {
+    0%   { transform: scale(0.5); opacity: 0; }
+    60%  { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1);   opacity: 1; }
+  }
+
+  .imv-shake {
+    animation: imv-shake 200ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+  @keyframes imv-shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-4px); }
+    50%      { transform: translateX(4px); }
+    80%      { transform: translateX(-2px); }
+  }
+
   .font-display {
     font-family: var(--font-display);
+  }
+}
+
+::view-transition-old(prompt-area),
+::view-transition-new(prompt-area) {
+  animation-duration: 360ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+::view-transition-old(results-card),
+::view-transition-new(results-card) {
+  animation-duration: 360ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .caret { animation: none !important; opacity: 0.85; }
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

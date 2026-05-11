@@ -140,9 +140,23 @@ export function TypingTest() {
   // detect completion
   useEffect(() => {
     if (phase === "running" && typed.length >= target.length) {
-      setPhase("done");
-      setElapsedMs(startedAt ? performance.now() - startedAt : 0);
-      reset();
+      const finalElapsed = startedAt ? performance.now() - startedAt : 0;
+      const complete = () => {
+        setPhase("done");
+        setElapsedMs(finalElapsed);
+        reset();
+      };
+      const reduced =
+        typeof window !== "undefined" &&
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const doc = document as Document & {
+        startViewTransition?: (cb: () => void) => unknown;
+      };
+      if (!reduced && typeof doc.startViewTransition === "function") {
+        doc.startViewTransition(complete);
+      } else {
+        complete();
+      }
     }
   }, [typed, target, phase, startedAt, reset]);
 

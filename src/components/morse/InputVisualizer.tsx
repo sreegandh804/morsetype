@@ -67,7 +67,8 @@ export function InputVisualizer({
   return (
     <div className="flex items-center justify-center h-14 mb-2">
       <div
-        className="relative flex items-center gap-1.5 px-5 py-3 rounded-lg justify-center overflow-hidden"
+        key={invalidAt ?? "noinvalid"}
+        className={`relative flex items-center gap-1.5 px-5 py-3 rounded-lg justify-center overflow-hidden ${showInvalid ? "imv-shake" : ""}`}
         style={{
           background: showInvalid ? "var(--color-error-soft)" : "var(--color-surface-1)",
           border: `1px solid ${borderColor}`,
@@ -84,7 +85,7 @@ export function InputVisualizer({
           const filled = userSym != null;
           const correct = filled && userSym === sym;
           const state: PelletState = !filled ? "ghost" : correct ? "correct" : "wrong";
-          return <Pellet key={i} kind={sym} state={state} />;
+          return <Pellet key={`${i}-${state}`} kind={sym} state={state} />;
         })}
         {overflow.map((c, i) => (
           <Pellet key={`x-${i}`} kind={c} state="wrong" />
@@ -116,14 +117,13 @@ function Pellet({ kind, state }: { kind: "." | "-"; state: PelletState }) {
     "transparent";
   return (
     <span
-      className="inline-block rounded-[2px]"
+      className="inline-block rounded-[2px] pellet-in"
       style={{
         width,
         height: 10,
         background: fill,
         border: state === "ghost" ? "1px solid var(--color-sub-faint)" : "none",
         boxSizing: "border-box",
-        transition: "background 100ms ease",
       }}
     />
   );

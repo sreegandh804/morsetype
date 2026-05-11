@@ -20,6 +20,11 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse }: 
         const isCurrent = i === cursor;
         const isSpace = ch === " ";
         const isError = done && errors[i];
+        const state = isCurrent
+          ? "current"
+          : done
+            ? isError ? "error" : "done"
+            : "ghost";
 
         let color = "var(--color-sub-faint)";
         if (isCurrent) color = "var(--color-main)";
@@ -29,18 +34,14 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse }: 
         const hintMorse =
           isCurrent && currentMorse ? currentMorse : morseGlyph;
 
-        const scale = isCurrent ? 1.12 : 1;
-
         return (
           <span
-            key={i}
-            className="inline-flex flex-col items-center px-[1px] py-1"
+            key={`${i}-${state}`}
+            data-state={state}
+            className="morse-letter inline-flex flex-col items-center px-[1px] py-1"
             style={{
               minWidth: isSpace ? 16 : 28,
               gap: 4,
-              transform: `scale(${scale})`,
-              transformOrigin: "center bottom",
-              transition: "transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}
           >
             <span

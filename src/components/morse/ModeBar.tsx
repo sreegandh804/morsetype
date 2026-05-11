@@ -1,5 +1,6 @@
 import type { Settings } from "@/lib/morse/storage";
 import type { ContentKind } from "@/lib/morse/content";
+import { RANKS } from "@/lib/morse/ranks";
 import { Volume2, VolumeX, Settings as SettingsIcon } from "lucide-react";
 
 interface Props {
@@ -12,7 +13,7 @@ const CONTENTS: { key: ContentKind; label: string }[] = [
   { key: "letters", label: "letters" },
   { key: "words", label: "words" },
   { key: "sentences", label: "sentences" },
-  { key: "tongue_twisters", label: "twisters" },
+  { key: "ranks", label: "ranks" },
   { key: "numbers", label: "numbers" },
 ];
 
@@ -27,6 +28,27 @@ export function ModeBar({ settings, onChange, onOpenSettings }: Props) {
         </button>
       ))}
       <span className="divider" />
+      {settings.content === "ranks" ? (
+        <>
+          {RANKS.map((r) => (
+            <button
+              key={r.key}
+              className="pill"
+              data-active={settings.rank === r.key}
+              onClick={() =>
+                onChange({
+                  rank: r.key,
+                  unitMs: Math.min(settings.unitMs, r.unitMsFloor),
+                })
+              }
+              title={r.blurb}
+            >
+              {r.label}
+            </button>
+          ))}
+          <span className="divider" />
+        </>
+      ) : null}
       {LENGTHS.map(n => (
         <button key={n} className="pill" data-active={settings.wordCount === n} onClick={() => onChange({ wordCount: n })}>
           {n}

@@ -6,6 +6,7 @@ import { Results } from "./Results";
 import { SettingsDialog } from "./SettingsDialog";
 import { InputVisualizer } from "./InputVisualizer";
 import { TransmissionLog } from "./TransmissionLog";
+import { TelegraphKey } from "./TelegraphKey";
 import { useMorseInput } from "@/lib/morse/useMorseInput";
 import { generate } from "@/lib/morse/content";
 import { calcAccuracy, calcWpm } from "@/lib/morse/wpm";
@@ -247,6 +248,15 @@ export function TypingTest() {
             />
           </div>
           <TransmissionLog letters={letterHistory} current={currentMorse} />
+          {settings.showKey && (
+            <div className="telegraph-key-mount">
+              <TelegraphKey
+                scheme={settings.scheme}
+                pressStartAt={pressStartAt}
+                lastSymbolAt={lastSymbolAt}
+              />
+            </div>
+          )}
           <InputHelp scheme={settings.scheme} gapMode={settings.gapMode} />
         </>
       ) : (

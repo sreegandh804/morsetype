@@ -151,6 +151,13 @@ export function TypingTest() {
   useEffect(() => {
     if (phase === "running" && typed.length >= target.length) {
       const finalElapsed = startedAt ? performance.now() - startedAt : 0;
+      // Stop the ticking timer immediately so WPM/elapsed freeze at the
+      // moment the user finishes — not after the transmit animation delay.
+      if (tickRef.current) {
+        window.clearInterval(tickRef.current);
+        tickRef.current = null;
+      }
+      setElapsedMs(finalElapsed);
       const reduced =
         typeof window !== "undefined" &&
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -158,10 +165,6 @@ export function TypingTest() {
         setPhase("done");
         setElapsedMs(finalElapsed);
         reset();
-        if (tickRef.current) {
-          window.clearInterval(tickRef.current);
-          tickRef.current = null;
-        }
       };
       const doc = document as Document & {
         startViewTransition?: (cb: () => void) => unknown;

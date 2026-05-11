@@ -1,5 +1,7 @@
 import type { InputScheme, GapMode } from "./useMorseInput";
 import type { ContentKind } from "./content";
+import type { Rank } from "./ranks";
+import type { Waveform } from "./audio";
 
 export type Theme = "serika" | "telegraph" | "midnight" | "radiosport";
 
@@ -13,6 +15,17 @@ export interface Settings {
   content: ContentKind;
   wordCount: number;
   theme: Theme;
+  // Telegraph audio
+  audioMode: "tone" | "sounder";
+  waveform: Waveform;
+  vintage: boolean;
+  // Telegraph key visual
+  showKey: boolean;
+  // Ranks
+  rank: Rank;
+  // Decode mode
+  decodeAudioOnly: boolean;
+  decodeFarnsworth: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -25,6 +38,13 @@ export const DEFAULT_SETTINGS: Settings = {
   content: "letters",
   wordCount: 25,
   theme: "serika",
+  audioMode: "tone",
+  waveform: "sine",
+  vintage: false,
+  showKey: true,
+  rank: "cadet",
+  decodeAudioOnly: false,
+  decodeFarnsworth: false,
 };
 
 const KEY = "morsetype.settings.v1";

@@ -1,15 +1,18 @@
 import type { InputScheme, GapMode } from "./useMorseInput";
 import type { ContentKind } from "./content";
 
+export type Theme = "serika" | "telegraph" | "midnight" | "radiosport";
+
 export interface Settings {
   scheme: InputScheme;
   gapMode: GapMode;
   unitMs: number;       // dit length, ms
   audio: boolean;
-  showHints: boolean;   // Learn mode forces this on
+  pitchHz: number;
+  showHints: boolean;
   content: ContentKind;
   wordCount: number;
-  mode: "learn" | "test";
+  theme: Theme;
   language: string;     // language id (see lib/morse/languages.ts)
 }
 
@@ -17,11 +20,12 @@ export const DEFAULT_SETTINGS: Settings = {
   scheme: "two_key",
   gapMode: "auto",
   unitMs: 80, // ~15 wpm
-  audio: true,
+  audio: false,
+  pitchHz: 600,
   showHints: false,
   content: "letters",
   wordCount: 25,
-  mode: "learn",
+  theme: "serika",
   language: "english",
 };
 
@@ -40,7 +44,10 @@ export function loadSettings(): Settings {
 
 export function saveSettings(s: Settings) {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
+  try {
+    localStorage.setItem(KEY, JSON.stringify(s));
+    window.dispatchEvent(new CustomEvent("morsetype:settings-changed"));
+  } catch {}
 }
 
 export function wpmFromUnit(unitMs: number) {

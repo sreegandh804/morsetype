@@ -11,11 +11,13 @@ import { generate } from "@/lib/morse/content";
 import { calcAccuracy, calcWpm } from "@/lib/morse/wpm";
 import { loadSettings, saveSettings, type Settings } from "@/lib/morse/storage";
 import { getLanguage } from "@/lib/morse/languages";
+import { useApplyTheme } from "@/hooks/use-theme";
 
 type Phase = "idle" | "running" | "done";
 
 export function TypingTest() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
+  useApplyTheme(settings.theme);
   const [target, setTarget] = useState(() =>
     generate(settings.content, settings.wordCount, settings.language),
   );
@@ -25,6 +27,7 @@ export function TypingTest() {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [invalidAt, setInvalidAt] = useState<number | null>(null);
 
   const tickRef = useRef<number | null>(null);
 
@@ -43,6 +46,24 @@ export function TypingTest() {
     setPhase("idle");
     setStartedAt(null);
     setElapsedMs(0);
+    setInvalidAt(null);
+  }
+
+  function handleInvalid() {
+    if (phase === "done") return;
+    setInvalidAt(performance.now());
+  }
+
+  function handleBackspace() {
+    if (phase === "done") return;
+    if (typed.length === 0) return;
+    setTyped((s) => s.slice(0, -1));
+    setErrors((e) => e.slice(0, -1));
+    if (typed.length === 1) {
+      setPhase("idle");
+      setStartedAt(null);
+      setElapsedMs(0);
+    }
   }
 
   // restart whenever content/length/language changes
@@ -65,27 +86,19 @@ export function TypingTest() {
   useEffect(() => {
     let tabPressed = false;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        setSettingsOpen((o) => !o);
-        return;
-      }
-      if (e.key === "Tab") {
-        e.preventDefault();
-        tabPressed = true;
-        return;
-      }
-      if (e.key === "Enter" && tabPressed) {
-        e.preventDefault();
+      if (settingsOpen) {
         tabPressed = false;
-        restart();
         return;
       }
-      if (e.key !== "Tab") tabPressed = false;
+      if (e.key === "Escape") { e.preventDefault(); setSettingsOpen(true); return; }
+      if (e.key === "Tab") { e.preventDefault(); tabPressed = true; return; }
+      if (e.key === "Enter" && tabPressed) { e.preventDefault(); tabPressed = false; restart(); return; }
+      if (e.key === "Shift" || e.key === "Control" || e.key === "Alt" || e.key === "Meta") return;
+      tabPressed = false;
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [settings, target]);
+  }, [settings, target, settingsOpen]);
 
   function handleChar(decoded: string) {
     if (phase === "done") return;
@@ -125,22 +138,39 @@ export function TypingTest() {
   );
 
   const enabled = phase !== "done" && !settingsOpen;
-  const { currentMorse, reset } = useMorseInput({
+  const { currentMorse, lastSymbolAt, pressStartAt, reset } = useMorseInput({
     scheme: settings.scheme,
     gapMode: settings.gapMode,
     unitMs: settings.unitMs,
     audio: settings.audio,
+    pitchHz: settings.pitchHz,
     enabled,
     reverseMorse,
     onChar: handleChar,
+    onInvalid: handleInvalid,
+    onBackspace: handleBackspace,
   });
 
   // detect completion
   useEffect(() => {
     if (phase === "running" && typed.length >= target.length) {
-      setPhase("done");
-      setElapsedMs(startedAt ? performance.now() - startedAt : 0);
-      reset();
+      const finalElapsed = startedAt ? performance.now() - startedAt : 0;
+      const complete = () => {
+        setPhase("done");
+        setElapsedMs(finalElapsed);
+        reset();
+      };
+      const reduced =
+        typeof window !== "undefined" &&
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const doc = document as Document & {
+        startViewTransition?: (cb: () => void) => unknown;
+      };
+      if (!reduced && typeof doc.startViewTransition === "function") {
+        doc.startViewTransition(complete);
+      } else {
+        complete();
+      }
     }
   }, [typed, target, phase, startedAt, reset]);
 
@@ -155,12 +185,6 @@ export function TypingTest() {
     currentChar && currentChar !== " "
       ? (lang.morse[currentChar] ?? lang.morse[currentChar.toUpperCase()] ?? null)
       : null;
-  const hint =
-    settings.scheme === "paddle"
-      ? "space = tap dit · hold dah"
-      : settings.scheme === "two_key"
-        ? "j = dit · k = dah"
-        : ". = dit · - = dah";
 
   return (
     <div className="flex flex-col items-center w-full max-w-3xl mx-auto px-8">
@@ -174,7 +198,16 @@ export function TypingTest() {
 
       {phase !== "done" ? (
         <>
-          <InputVisualizer currentInput={currentMorse} targetMorse={targetMorse} hint={hint} />
+          <InputVisualizer
+            currentInput={currentMorse}
+            targetMorse={targetMorse}
+            lastSymbolAt={lastSymbolAt}
+            pressStartAt={pressStartAt}
+            unitMs={settings.unitMs}
+            gapMode={settings.gapMode}
+            scheme={settings.scheme}
+            invalidAt={invalidAt}
+          />
           <div className="w-full">
             <div className="flex justify-center mb-1">
               <LanguagePicker
@@ -186,7 +219,7 @@ export function TypingTest() {
               target={target}
               typed={typed}
               errors={errors}
-              showHints={settings.showHints || settings.mode === "learn"}
+              showHints={settings.showHints}
               currentMorse={currentMorse}
               morse={lang.morse}
               rtl={lang.rtl}

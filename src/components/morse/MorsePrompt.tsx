@@ -13,8 +13,9 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse, mo
   const cursor = typed.length;
   return (
     <div
-      className="flex flex-wrap justify-center px-4 py-6 min-h-[7.5rem] gap-y-2 select-none leading-tight"
+      className="flex flex-wrap justify-center px-4 py-6 min-h-[7.5rem] gap-y-2 leading-tight"
       dir={rtl ? "rtl" : "ltr"}
+      style={{ viewTransitionName: "prompt-area" } as React.CSSProperties}
     >
       {target.split("").map((ch, i) => {
         const done = i < cursor;
@@ -22,20 +23,25 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse, mo
         const isSpace = ch === " ";
         const isError = done && errors[i];
 
-        let color = "var(--sub-faint)";
-        if (isCurrent) color = "var(--main)";
-        else if (done) color = isError ? "var(--error)" : "var(--sub-strong)";
+        let color = "var(--color-sub-faint)";
+        if (isCurrent) color = "var(--color-main)";
+        else if (done) color = isError ? "var(--color-error)" : "var(--color-sub-strong)";
 
         const morseGlyph = isSpace ? "" : (morse[ch] ?? morse[ch.toUpperCase()] ?? "");
         const hintMorse = isCurrent && currentMorse ? currentMorse : morseGlyph;
 
+        const scale = isCurrent ? 1.12 : 1;
+
         return (
           <span
             key={i}
-            className="inline-flex flex-col items-center px-[1px] py-1 transition-colors"
+            className="inline-flex flex-col items-center px-[1px] py-1"
             style={{
               minWidth: isSpace ? 16 : 28,
               gap: 4,
+              transform: `scale(${scale})`,
+              transformOrigin: "center bottom",
+              transition: "transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}
           >
             <span
@@ -43,12 +49,13 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse, mo
               style={{
                 color,
                 textDecoration: isError ? "underline" : "none",
-                textDecorationColor: "var(--error)",
+                textDecorationColor: "var(--color-error)",
                 textUnderlineOffset: 4,
+                transition: "color 140ms ease",
               }}
             >
-              {isCurrent && <span className="caret absolute -left-[3px]" />}
-              {isSpace ? " " : ch}
+              {isCurrent && <span className="caret prompt-caret absolute -left-[3px]" />}
+              {isSpace ? " " : ch}
             </span>
             {showHints && !isSpace && (
               <span
@@ -56,6 +63,7 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse, mo
                 style={{
                   color,
                   opacity: isCurrent ? 0.85 : 0.6,
+                  transition: "color 140ms ease, opacity 140ms ease",
                 }}
               >
                 {hintMorse}

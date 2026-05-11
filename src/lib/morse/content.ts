@@ -18,7 +18,7 @@ export function generate(kind: ContentKind, wordCount = 25, langId = "english"):
 
   switch (kind) {
     case "letters":
-      return Array.from({ length: wordCount * 3 }, () => pick(letters)).join(" ");
+      return Array.from({ length: wordCount }, () => pick(letters)).join(" ");
     case "numbers":
       return Array.from({ length: wordCount }, () =>
         Array.from({ length: 3 + Math.floor(Math.random() * 3) }, () => pick(numbers)).join(""),

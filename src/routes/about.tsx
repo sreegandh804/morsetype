@@ -24,23 +24,17 @@ function Page() {
       <Header />
       <main className="flex-1 max-w-4xl w-full mx-auto px-8 py-10 space-y-12">
         <section>
-          <h1 className="font-mono text-2xl tracking-tight mb-2">
+          <h1 className="font-display text-3xl tracking-tight mb-2">
             <span className="text-(--color-text)">about </span>
             <span className="text-(--color-main)">morsetype</span>
           </h1>
           <p className="text-(--color-sub-strong) leading-relaxed max-w-2xl text-sm">
-            A keyboard-first Morse code trainer modeled on the UX of monkeytype. Pick a mode,
-            pick how you want to key in dots and dashes, and start practicing. Letters turn
-            green when you key them correctly and red when you don't. Watch your WPM climb.
+            A keyboard-first Morse code trainer. Pick how you want to key in dits and dahs,
+            optionally turn on Morse hints under each letter, and start practicing.
+            Correct letters dim into the background, mistakes pick up a red underline,
+            and your WPM climbs as you go.
           </p>
         </section>
-
-        <Section title="two practice modes">
-          <List items={[
-            ["learn", "each letter is shown with its Morse code below. beginner-friendly."],
-            ["test", "letters only. recall the Morse from memory."],
-          ]} />
-        </Section>
 
         <Section title="three input schemes">
           <List items={[
@@ -86,7 +80,7 @@ function Page() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-4">
-      <h2 className="font-mono text-base text-(--color-main) lowercase tracking-tight">
+      <h2 className="font-display text-lg text-(--color-main) lowercase tracking-tight">
         {title}
       </h2>
       {children}
@@ -117,11 +111,11 @@ function ChartGrid({ keys }: { keys: string[] }) {
           key={k}
           className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-lg transition-colors"
           style={{
-            background: "rgba(255, 255, 255, 0.02)",
-            border: "1px solid var(--hairline)",
+            background: "var(--color-surface-1)",
+            border: "1px solid var(--color-hairline)",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--main-border)")}
-          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--hairline)")}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--color-main-border)")}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-hairline)")}
         >
           <span className="text-(--color-text) text-xl font-semibold font-mono">{k.toUpperCase()}</span>
           <span className="text-(--color-main) text-[11px] tracking-[2px]">{MORSE[k]}</span>

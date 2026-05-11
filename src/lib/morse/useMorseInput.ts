@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { REVERSE_MORSE } from "./alphabet";
-import { beep } from "./audio";
+import { emitSymbol, type Waveform } from "./audio";
 
 export type InputScheme = "paddle" | "two_key" | "literal";
 export type GapMode = "auto" | "explicit";
@@ -11,6 +11,9 @@ export interface MorseInputOptions {
   unitMs: number;
   audio: boolean;
   pitchHz: number;
+  audioMode?: "tone" | "sounder";
+  waveform?: Waveform;
+  vintage?: boolean;
   enabled: boolean;
   onChar: (ch: string, symbols: string) => void;
   onInvalid?: (symbols: string) => void;
@@ -65,7 +68,13 @@ export function useMorseInput(opts: MorseInputOptions) {
     setCurrent(buf.current);
     setLastSymbolAt(performance.now());
     o.onSymbol?.(s);
-    if (o.audio) beep(s === "." ? o.unitMs : o.unitMs * 3, o.pitchHz);
+    emitSymbol(s, o.unitMs, {
+      audio: o.audio,
+      audioMode: o.audioMode ?? "tone",
+      pitchHz: o.pitchHz,
+      waveform: o.waveform ?? "sine",
+      vintage: o.vintage,
+    });
     if (o.gapMode === "auto") {
       if (letterTimer.current) window.clearTimeout(letterTimer.current);
       if (wordTimer.current) window.clearTimeout(wordTimer.current);

@@ -20,9 +20,9 @@ export function StatsBar({ wpm, acc, elapsedMs, total, typed, active }: Props) {
   return (
     <div className="w-full pt-5 border-t border-(--color-hairline)">
       <div className="flex justify-center items-end gap-12">
-        <Stat label="wpm" value={wpm} round />
-        <Stat label="acc" value={acc} color={accColor} format={(n) => `${Math.round(n)}%`} />
-        <Stat label="time" value={elapsedMs / 1000} dim format={(n) => `${n.toFixed(1)}s`} />
+        <Stat label="wpm" value={`${Math.round(wpm)}`} />
+        <Stat label="acc" value={`${Math.round(acc)}%`} color={accColor} />
+        <Stat label="time" value={`${(elapsedMs / 1000).toFixed(1)}s`} dim />
       </div>
       <div className="mt-4 h-px w-full max-w-md mx-auto bg-(--color-hairline) overflow-hidden rounded-full">
         <span

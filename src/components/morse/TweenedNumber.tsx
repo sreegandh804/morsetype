@@ -13,22 +13,23 @@ function prefersReducedMotion() {
 }
 
 export function TweenedNumber({ value, from, duration = 500, format }: Props) {
-  const [displayed, setDisplayed] = useState(from ?? value);
-  const fromRef = useRef(from ?? value);
+  const initial = from ?? value;
+  const [displayed, setDisplayed] = useState(initial);
+  const displayedRef = useRef(initial);
   const reduced = useRef(prefersReducedMotion());
 
   useEffect(() => {
-    if (reduced.current) {
+    if (reduced.current || duration <= 0) {
       setDisplayed(value);
-      fromRef.current = value;
+      displayedRef.current = value;
       return;
     }
     const start = performance.now();
-    const startValue = fromRef.current;
+    const startValue = displayedRef.current;
     const delta = value - startValue;
     if (Math.abs(delta) < 0.01) {
       setDisplayed(value);
-      fromRef.current = value;
+      displayedRef.current = value;
       return;
     }
     let raf = 0;
@@ -37,8 +38,9 @@ export function TweenedNumber({ value, from, duration = 500, format }: Props) {
       const eased = 1 - Math.pow(1 - t, 3);
       const next = startValue + delta * eased;
       setDisplayed(next);
+      displayedRef.current = next;
       if (t < 1) raf = requestAnimationFrame(tick);
-      else fromRef.current = value;
+      else displayedRef.current = value;
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);

@@ -75,8 +75,8 @@ export function InputVisualizer({
   ].filter(Boolean).join(" ");
 
   return (
-    <div className="flex flex-col items-center justify-center h-14 mb-3 gap-2">
-      <div className={rowClasses} aria-live="polite">
+    <div className="flex flex-col items-center justify-center h-14 mb-3 gap-2" aria-hidden>
+      <div className={rowClasses}>
         {symbols.map((sym, i) => {
           if (isPaddleHeld && i === typed.length) {
             return <PaddlePreview key={`p-${i}`} pressMs={pressMs} unitMs={unitMs} />;

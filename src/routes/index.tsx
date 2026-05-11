@@ -33,7 +33,7 @@ function Index() {
     setOnboarded(true);
   }
 
-  let content;
+  let content: React.ReactNode = null;
   if (isTouch) {
     content = <TouchGate />;
   } else if (onboarded === false) {
@@ -45,9 +45,10 @@ function Index() {
         onSkip={finishOnboarding}
       />
     );
-  } else {
+  } else if (onboarded === true) {
     content = <TypingTest />;
   }
+  // onboarded === null: hold render until resolved to prevent flash
 
   return (
     <div className="min-h-screen flex flex-col">

@@ -1,15 +1,19 @@
 import { Link } from "@tanstack/react-router";
+import { Radio, Send } from "lucide-react";
 
 export function Header() {
   return (
     <header className="w-full px-8 py-5 flex items-center justify-between border-b border-(--color-hairline)">
-      <Link to="/" className="flex items-center gap-2.5 group">
-        <span className="text-(--color-main) text-lg tracking-wider leading-none font-mono">··· −−− ···</span>
-        <span className="font-display text-lg font-bold tracking-tight leading-none">
-          <span className="text-(--color-text)">morse</span>
-          <span className="text-(--color-main)">type</span>
-        </span>
-      </Link>
+      <div className="flex items-center gap-5">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <span className="text-(--color-main) text-lg tracking-wider leading-none font-mono">··· −−− ···</span>
+          <span className="font-display text-lg font-bold tracking-tight leading-none">
+            <span className="text-(--color-text)">morse</span>
+            <span className="text-(--color-main)">type</span>
+          </span>
+        </Link>
+        <SendReceiveToggle />
+      </div>
       <nav className="flex items-center gap-6 text-[13px] lowercase">
         <NavLink to="/">practice</NavLink>
         <NavLink to="/about">learn</NavLink>
@@ -19,7 +23,7 @@ export function Header() {
   );
 }
 
-function NavLink({ to, children }: { to: "/" | "/leaderboard" | "/about"; children: React.ReactNode }) {
+function NavLink({ to, children }: { to: "/" | "/leaderboard" | "/about" | "/receive"; children: React.ReactNode }) {
   return (
     <Link
       to={to}
@@ -29,5 +33,32 @@ function NavLink({ to, children }: { to: "/" | "/leaderboard" | "/about"; childr
     >
       {children}
     </Link>
+  );
+}
+
+function SendReceiveToggle() {
+  return (
+    <div className="send-receive-toggle" role="tablist" aria-label="practice direction">
+      <Link
+        to="/"
+        activeOptions={{ exact: true }}
+        activeProps={{ "data-active": "true" } as never}
+        className="sr-pill"
+        title="send — key Morse from text"
+      >
+        <Send className="size-3" />
+        <span>send</span>
+      </Link>
+      <Link
+        to="/receive"
+        activeOptions={{ exact: true }}
+        activeProps={{ "data-active": "true" } as never}
+        className="sr-pill"
+        title="receive — type what you hear"
+      >
+        <Radio className="size-3" />
+        <span>receive</span>
+      </Link>
+    </div>
   );
 }

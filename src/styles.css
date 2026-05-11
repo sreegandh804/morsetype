@@ -353,17 +353,105 @@
     width: 100%;
     max-width: 36rem;
     margin: 1.75rem auto 0;
-    padding: 0.625rem 1rem;
+    padding: 0.75rem 1rem;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.375rem 0.875rem;
-    border-top: 1px dashed var(--color-hairline);
-    min-height: 30px;
+    min-height: 34px;
+    position: relative;
+    background:
+      radial-gradient(circle at 6px 6px, var(--color-hairline) 1.5px, transparent 1.6px) top left / 14px 12px repeat-x,
+      radial-gradient(circle at 6px 6px, var(--color-hairline) 1.5px, transparent 1.6px) bottom left / 14px 12px repeat-x,
+      linear-gradient(var(--color-surface-1), var(--color-surface-1));
+    border-radius: 4px;
+    overflow: hidden;
   }
   .transmission-log-empty {
-    border-top: 1px dashed transparent;
-    min-height: 30px;
+    background: transparent;
+    min-height: 34px;
+  }
+
+  .telegraph-key-mount {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .telegraph-key-svg { display: block; }
+
+  .send-receive-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: var(--color-surface-1);
+    border-radius: 999px;
+    padding: 2px;
+    gap: 0;
+    border: 1px solid var(--color-hairline);
+  }
+  .sr-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    color: var(--color-sub);
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    transition: color 150ms var(--ease-out-quint), background 150ms var(--ease-out-quint);
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+  .sr-pill:hover { color: var(--color-sub-strong); }
+  .sr-pill[data-active="true"] {
+    color: var(--color-main);
+    background: var(--color-main-soft);
+    font-weight: 500;
+  }
+
+  .scope-strip {
+    width: 100%;
+    max-width: 36rem;
+    margin: 0 auto 1rem;
+    height: 44px;
+    border-radius: 6px;
+    background: var(--color-surface-1);
+    border: 1px solid var(--color-hairline);
+    position: relative;
+    overflow: hidden;
+  }
+  .scope-line {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    color: var(--color-main);
+    opacity: 0.55;
+    font-family: var(--font-mono);
+    letter-spacing: 2px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .scope-pulse::after {
+    content: "";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-main);
+    transform: translateY(-50%);
+    box-shadow: 0 0 14px var(--color-main);
+    animation: scope-blink 700ms var(--ease-out-quint) infinite alternate;
+  }
+  @keyframes scope-blink {
+    from { opacity: 0.25; }
+    to   { opacity: 1; }
   }
   .tlog-letter {
     display: inline-flex;

@@ -1,14 +1,8 @@
-export type ContentKind = "letters" | "words" | "sentences" | "tongue_twisters" | "numbers";
+import { generateForRank, type Rank } from "./ranks";
 
-const COMMON_WORDS = [
-  "the","of","and","to","in","is","you","that","it","he","was","for","on","are","as","with",
-  "his","they","at","be","this","have","from","or","one","had","by","word","but","not","what",
-  "all","were","we","when","your","can","said","there","use","an","each","which","she","do",
-  "how","their","if","will","up","other","about","out","many","then","them","these","so","some",
-  "her","would","make","like","him","into","time","has","look","two","more","write","go","see",
-  "number","no","way","could","people","my","than","first","water","been","call","who","its","now",
-  "find","long","down","day","did","get","come","made","may","part",
-];
+export type ContentKind = "letters" | "words" | "sentences" | "numbers" | "ranks";
+
+const COMMON_WORDS = "the of and to in is you that it he was for on are as with his they at be this have from or one had by but not what all were we when your can said there use an each which she do how their if will up other about out many then them these so some her would make like him into time has look two more write go see number no way could people my than first water been call who its now find long down day did get come made may part".split(" ");
 
 const SENTENCES = [
   "the quick brown fox jumps over the lazy dog",
@@ -22,16 +16,6 @@ const SENTENCES = [
   "imagination is more important than knowledge",
 ];
 
-const TONGUE_TWISTERS = [
-  "she sells seashells by the seashore",
-  "peter piper picked a peck of pickled peppers",
-  "how much wood would a woodchuck chuck",
-  "red lorry yellow lorry red lorry yellow lorry",
-  "fuzzy wuzzy was a bear fuzzy wuzzy had no hair",
-  "betty bought a bit of bitter butter",
-  "a proper copper coffee pot",
-];
-
 const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
 const NUMS = "0123456789".split("");
 
@@ -39,7 +23,7 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function generate(kind: ContentKind, wordCount = 25): string {
+export function generate(kind: ContentKind, wordCount = 25, rank: Rank = "cadet"): string {
   switch (kind) {
     case "letters":
       return Array.from({ length: wordCount }, () => pick(LETTERS)).join(" ");
@@ -54,10 +38,7 @@ export function generate(kind: ContentKind, wordCount = 25): string {
       while (out.join(" ").split(/\s+/).length < wordCount) out.push(pick(SENTENCES));
       return out.join(" ");
     }
-    case "tongue_twisters": {
-      const out: string[] = [];
-      while (out.join(" ").split(/\s+/).length < wordCount) out.push(pick(TONGUE_TWISTERS));
-      return out.join(" ");
-    }
+    case "ranks":
+      return generateForRank(rank, wordCount);
   }
 }

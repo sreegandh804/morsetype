@@ -15,9 +15,10 @@ interface Props {
   incorrect: number;
   settings: Settings;
   onRestart: () => void;
+  direction?: "send" | "decode";
 }
 
-export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onRestart }: Props) {
+export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onRestart, direction = "send" }: Props) {
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -40,6 +41,8 @@ export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onR
       content: settings.content,
       input_scheme: settings.scheme,
       duration_seconds: Math.round(elapsedMs / 1000),
+      rank: settings.content === "ranks" ? settings.rank : null,
+      direction,
     });
     if (error) { setSubmitting(false); toast.error(error.message); return; }
 

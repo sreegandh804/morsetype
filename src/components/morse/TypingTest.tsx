@@ -6,6 +6,7 @@ import { Results } from "./Results";
 import { SettingsDialog } from "./SettingsDialog";
 import { InputVisualizer } from "./InputVisualizer";
 import { TransmissionLog } from "./TransmissionLog";
+import { TelegraphKey } from "./TelegraphKey";
 import { useMorseInput } from "@/lib/morse/useMorseInput";
 import { generate } from "@/lib/morse/content";
 import { calcAccuracy, calcWpm } from "@/lib/morse/wpm";
@@ -18,7 +19,7 @@ type Phase = "idle" | "running" | "done";
 export function TypingTest() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   useApplyTheme(settings.theme);
-  const [target, setTarget] = useState(() => generate(settings.content, settings.wordCount));
+  const [target, setTarget] = useState(() => generate(settings.content, settings.wordCount, settings.rank));
   const [typed, setTyped] = useState<string>("");
   const [errors, setErrors] = useState<boolean[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -39,7 +40,7 @@ export function TypingTest() {
   }
 
   function restart(nextSettings = settings) {
-    setTarget(generate(nextSettings.content, nextSettings.wordCount));
+    setTarget(generate(nextSettings.content, nextSettings.wordCount, nextSettings.rank));
     setTyped("");
     setErrors([]);
     setPhase("idle");
@@ -71,7 +72,7 @@ export function TypingTest() {
   }
 
   // restart whenever content/length changes
-  useEffect(() => { restart(settings); /* eslint-disable-next-line */ }, [settings.content, settings.wordCount]);
+  useEffect(() => { restart(settings); /* eslint-disable-next-line */ }, [settings.content, settings.wordCount, settings.rank]);
 
   // tick timer
   useEffect(() => {
@@ -140,6 +141,9 @@ export function TypingTest() {
     unitMs: settings.unitMs,
     audio: settings.audio,
     pitchHz: settings.pitchHz,
+    audioMode: settings.audioMode,
+    waveform: settings.waveform,
+    vintage: settings.vintage,
     enabled,
     onChar: handleChar,
     onInvalid: handleInvalid,
@@ -244,6 +248,15 @@ export function TypingTest() {
             />
           </div>
           <TransmissionLog letters={letterHistory} current={currentMorse} />
+          {settings.showKey && (
+            <div className="telegraph-key-mount">
+              <TelegraphKey
+                scheme={settings.scheme}
+                pressStartAt={pressStartAt}
+                lastSymbolAt={lastSymbolAt}
+              />
+            </div>
+          )}
           <InputHelp scheme={settings.scheme} gapMode={settings.gapMode} />
         </>
       ) : (

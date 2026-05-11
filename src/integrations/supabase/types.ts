@@ -19,33 +19,39 @@ export type Database = {
           accuracy: number
           content: string
           created_at: string
+          direction: string
           duration_seconds: number
           id: string
           input_scheme: string
           mode: string
           name: string
+          rank: string | null
           wpm: number
         }
         Insert: {
           accuracy: number
           content: string
           created_at?: string
+          direction?: string
           duration_seconds: number
           id?: string
           input_scheme: string
           mode: string
           name: string
+          rank?: string | null
           wpm: number
         }
         Update: {
           accuracy?: number
           content?: string
           created_at?: string
+          direction?: string
           duration_seconds?: number
           id?: string
           input_scheme?: string
           mode?: string
           name?: string
+          rank?: string | null
           wpm?: number
         }
         Relationships: []

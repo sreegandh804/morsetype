@@ -29,7 +29,10 @@ export function SettingsDialog({ open, onOpenChange, settings, onChange }: Props
   const wpm = wpmFromUnit(settings.unitMs);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-(--color-sub-alt) border-(--color-border) text-(--color-text) max-w-md">
+      <DialogContent
+        className="border-(--color-main-border) text-(--color-text) max-w-md shadow-2xl"
+        style={{ background: "var(--color-background)" }}
+      >
         <DialogHeader>
           <DialogTitle className="text-(--color-main) font-display">settings</DialogTitle>
           <DialogDescription className="text-(--color-sub)">configure how you key in Morse.</DialogDescription>

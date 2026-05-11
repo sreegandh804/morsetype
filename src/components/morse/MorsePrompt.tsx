@@ -29,7 +29,7 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse }: 
         const hintMorse =
           isCurrent && currentMorse ? currentMorse : morseGlyph;
 
-        const scale = isCurrent ? 1.06 : 1;
+        const scale = isCurrent ? 1.12 : 1;
 
         return (
           <span

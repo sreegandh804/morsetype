@@ -4,13 +4,14 @@ interface Props {
   wpm: number;
   acc: number;
   elapsedMs: number;
+  remainingMs?: number;
   total: number;
   typed: number;
   active: boolean;
   streak?: number;
 }
 
-export function StatsBar({ wpm, acc, elapsedMs, total, typed, active, streak = 0 }: Props) {
+export function StatsBar({ wpm, acc, elapsedMs, remainingMs, total, typed, active, streak = 0 }: Props) {
   const pct = total > 0 ? Math.min(100, (typed / total) * 100) : 0;
   const accColor =
     acc >= 100 ? "var(--color-success)" :
@@ -19,13 +20,21 @@ export function StatsBar({ wpm, acc, elapsedMs, total, typed, active, streak = 0
     "var(--color-main)";
   const streakHot = streak >= 5;
   const streakGlow = Math.min(1, streak / 8);
+  const showCountdown = typeof remainingMs === "number";
+  const timeMs = showCountdown ? Math.max(0, remainingMs!) : elapsedMs;
+  const lowTime = showCountdown && timeMs <= 5000;
 
   return (
     <div className="w-full pt-5 border-t border-(--color-hairline)">
       <div className="flex justify-center items-end gap-12">
         <Stat label="wpm" value={`${Math.round(wpm)}`} />
         <Stat label="acc" value={`${Math.round(acc)}%`} color={accColor} />
-        <Stat label="time" value={`${(elapsedMs / 1000).toFixed(1)}s`} dim />
+        <Stat
+          label={showCountdown ? "left" : "time"}
+          value={`${(timeMs / 1000).toFixed(1)}s`}
+          color={lowTime ? "var(--color-error)" : undefined}
+          dim={!lowTime}
+        />
         <div className="flex flex-col items-center" aria-live="polite">
           <div
             className="stat-value tabular-nums"

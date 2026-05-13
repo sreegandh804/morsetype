@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ReceiveRouteImport } from './routes/receive'
 import { Route as LearnRouteImport } from './routes/learn'
-import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -23,11 +22,6 @@ const ReceiveRoute = ReceiveRouteImport.update({
 const LearnRoute = LearnRouteImport.update({
   id: '/learn',
   path: '/learn',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LeaderboardRoute = LeaderboardRouteImport.update({
-  id: '/leaderboard',
-  path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -44,14 +38,12 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/leaderboard': typeof LeaderboardRoute
   '/learn': typeof LearnRoute
   '/receive': typeof ReceiveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/leaderboard': typeof LeaderboardRoute
   '/learn': typeof LearnRoute
   '/receive': typeof ReceiveRoute
 }
@@ -59,22 +51,20 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/leaderboard': typeof LeaderboardRoute
   '/learn': typeof LearnRoute
   '/receive': typeof ReceiveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/leaderboard' | '/learn' | '/receive'
+  fullPaths: '/' | '/about' | '/learn' | '/receive'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/leaderboard' | '/learn' | '/receive'
-  id: '__root__' | '/' | '/about' | '/leaderboard' | '/learn' | '/receive'
+  to: '/' | '/about' | '/learn' | '/receive'
+  id: '__root__' | '/' | '/about' | '/learn' | '/receive'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  LeaderboardRoute: typeof LeaderboardRoute
   LearnRoute: typeof LearnRoute
   ReceiveRoute: typeof ReceiveRoute
 }
@@ -93,13 +83,6 @@ declare module '@tanstack/react-router' {
       path: '/learn'
       fullPath: '/learn'
       preLoaderRoute: typeof LearnRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/leaderboard': {
-      id: '/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -122,7 +105,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  LeaderboardRoute: LeaderboardRoute,
   LearnRoute: LearnRoute,
   ReceiveRoute: ReceiveRoute,
 }

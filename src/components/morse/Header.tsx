@@ -18,9 +18,7 @@ export function Header() {
       </div>
       <nav className="flex items-center gap-6 text-[13px] lowercase">
         <NavLink to="/">practice</NavLink>
-        <NavLink to="/learn">learn</NavLink>
         <NavLink to="/about">chart</NavLink>
-        <NavLink to="/leaderboard">leaderboard</NavLink>
       </nav>
     </header>
   );
@@ -30,7 +28,7 @@ function NavLink({
   to,
   children,
 }: {
-  to: "/" | "/learn" | "/leaderboard" | "/about" | "/receive";
+  to: "/" | "/about" | "/receive";
   children: React.ReactNode;
 }) {
   return (

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Radio, Send } from "lucide-react";
+import { Github, Radio, Send } from "lucide-react";
 
 export function Header() {
   return (
@@ -19,6 +19,16 @@ export function Header() {
       <nav className="flex items-center gap-6 text-[13px] lowercase">
         <NavLink to="/">practice</NavLink>
         <NavLink to="/about">chart</NavLink>
+        <a
+          href="https://github.com/sreegandh804/morsetype"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="source on github"
+          title="source on github"
+          className="text-(--color-sub) hover:text-(--color-sub-strong) transition-colors flex items-center"
+        >
+          <Github className="size-4" />
+        </a>
       </nav>
     </header>
   );

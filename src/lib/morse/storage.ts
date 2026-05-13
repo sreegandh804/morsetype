@@ -29,7 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
   scheme: "two_key",
   gapMode: "auto",
   unitMs: 80, // ~15 wpm
-  audio: false,
+  audio: true,
   pitchHz: 600,
   showHints: false,
   content: "letters",

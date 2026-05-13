@@ -1,13 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { TypingTest } from "@/components/morse/TypingTest";
-import { Onboarding } from "@/components/morse/Onboarding";
 import { Header } from "@/components/morse/Header";
 import { useTouchOnly } from "@/hooks/use-touch";
-import { loadSettings } from "@/lib/morse/storage";
-
-const ONBOARD_KEY = "morsetype.onboarded.v1";
-const SETTINGS_KEY = "morsetype.settings.v1";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -15,40 +9,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const isTouch = useTouchOnly();
-  const [onboarded, setOnboarded] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const hasOnboarded = !!localStorage.getItem(ONBOARD_KEY);
-    const hasSettings = !!localStorage.getItem(SETTINGS_KEY);
-    if (hasOnboarded || hasSettings) {
-      setOnboarded(true);
-      if (!hasOnboarded) localStorage.setItem(ONBOARD_KEY, "1");
-    } else {
-      setOnboarded(false);
-    }
-  }, []);
-
-  function finishOnboarding() {
-    localStorage.setItem(ONBOARD_KEY, "1");
-    setOnboarded(true);
-  }
-
-  let content: React.ReactNode = null;
-  if (isTouch) {
-    content = <TouchGate />;
-  } else if (onboarded === false) {
-    const scheme = loadSettings().scheme;
-    content = (
-      <Onboarding
-        scheme={scheme}
-        onComplete={finishOnboarding}
-        onSkip={finishOnboarding}
-      />
-    );
-  } else if (onboarded === true) {
-    content = <TypingTest />;
-  }
-  // onboarded === null: hold render until resolved to prevent flash
+  const content = isTouch ? <TouchGate /> : <TypingTest />;
 
   return (
     <div className="min-h-screen flex flex-col">

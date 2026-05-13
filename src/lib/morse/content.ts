@@ -1,8 +1,9 @@
-import { generateForRank, type Rank } from "./ranks";
+export type ContentKind = "letters" | "words" | "sentences" | "numbers";
 
-export type ContentKind = "letters" | "words" | "sentences" | "numbers" | "ranks";
-
-const COMMON_WORDS = "the of and to in is you that it he was for on are as with his they at be this have from or one had by but not what all were we when your can said there use an each which she do how their if will up other about out many then them these so some her would make like him into time has look two more write go see number no way could people my than first water been call who its now find long down day did get come made may part".split(" ");
+export const COMMON_WORDS =
+  "the of and to in is you that it he was for on are as with his they at be this have from or one had by but not what all were we when your can said there use an each which she do how their if will up other about out many then them these so some her would make like him into time has look two more write go see number no way could people my than first water been call who its now find long down day did get come made may part".split(
+    " ",
+  );
 
 const SENTENCES = [
   "the quick brown fox jumps over the lazy dog",
@@ -23,7 +24,7 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function generate(kind: ContentKind, wordCount = 25, rank: Rank = "cadet"): string {
+export function generate(kind: ContentKind, wordCount = 25): string {
   switch (kind) {
     case "letters":
       return Array.from({ length: wordCount }, () => pick(LETTERS)).join(" ");
@@ -38,7 +39,5 @@ export function generate(kind: ContentKind, wordCount = 25, rank: Rank = "cadet"
       while (out.join(" ").split(/\s+/).length < wordCount) out.push(pick(SENTENCES));
       return out.join(" ");
     }
-    case "ranks":
-      return generateForRank(rank, wordCount);
   }
 }

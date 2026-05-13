@@ -18,7 +18,16 @@ interface Props {
   direction?: "send" | "decode";
 }
 
-export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onRestart, direction = "send" }: Props) {
+export function Results({
+  wpm,
+  acc,
+  elapsedMs,
+  correct,
+  incorrect,
+  settings,
+  onRestart,
+  direction = "send",
+}: Props) {
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -41,10 +50,14 @@ export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onR
       content: settings.content,
       input_scheme: settings.scheme,
       duration_seconds: Math.round(elapsedMs / 1000),
-      rank: settings.content === "ranks" ? settings.rank : null,
+      rank: null,
       direction,
     });
-    if (error) { setSubmitting(false); toast.error(error.message); return; }
+    if (error) {
+      setSubmitting(false);
+      toast.error(error.message);
+      return;
+    }
 
     const { count } = await supabase
       .from("leaderboard_entries")
@@ -57,9 +70,7 @@ export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onR
   }
 
   const accColor =
-    acc >= 100 ? "var(--color-success)" :
-    acc >= 90 ? "var(--color-main)" :
-    "var(--color-error)";
+    acc >= 100 ? "var(--color-success)" : acc >= 90 ? "var(--color-main)" : "var(--color-error)";
 
   return (
     <div
@@ -78,7 +89,13 @@ export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onR
         </div>
         <div className="flex flex-wrap justify-center gap-x-12 gap-y-6 mb-5">
           <Stat label="wpm" value={wpm} from={0} round />
-          <Stat label="accuracy" value={acc} from={0} color={accColor} format={(n) => `${Math.round(n)}%`} />
+          <Stat
+            label="accuracy"
+            value={acc}
+            from={0}
+            color={accColor}
+            format={(n) => `${Math.round(n)}%`}
+          />
           <Stat label="correct" value={correct} from={0} color="var(--color-sub-strong)" />
           <Stat
             label="errors"
@@ -86,7 +103,13 @@ export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onR
             from={0}
             color={incorrect > 0 ? "var(--color-error)" : "var(--color-sub)"}
           />
-          <Stat label="time" value={elapsedMs / 1000} from={0} dim format={(n) => `${n.toFixed(1)}s`} />
+          <Stat
+            label="time"
+            value={elapsedMs / 1000}
+            from={0}
+            dim
+            format={(n) => `${n.toFixed(1)}s`}
+          />
         </div>
         <div className="text-[11px] text-(--color-sub-faint) lowercase tracking-wide">
           tab + enter → restart
@@ -118,8 +141,7 @@ export function Results({ wpm, acc, elapsedMs, correct, incorrect, settings, onR
         <div className="flex flex-col items-center gap-1 text-sm">
           {rank != null ? (
             <p className="text-(--color-text)">
-              you ranked{" "}
-              <span className="text-(--color-main) font-bold">#{rank}</span>
+              you ranked <span className="text-(--color-main) font-bold">#{rank}</span>
             </p>
           ) : (
             <p className="text-(--color-text)">saved to the leaderboard</p>

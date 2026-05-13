@@ -2,6 +2,8 @@
 
 let ctx: AudioContext | null = null;
 let vintageIR: AudioBuffer | null = null;
+let masterBus: GainNode | null = null;
+let analyser: AnalyserNode | null = null;
 
 function getCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -13,6 +15,27 @@ function getCtx(): AudioContext | null {
     ctx = new AC();
   }
   return ctx;
+}
+
+function getBus(c: AudioContext): GainNode {
+  if (!masterBus) {
+    masterBus = c.createGain();
+    masterBus.gain.value = 1;
+    analyser = c.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.05;
+    masterBus.connect(analyser);
+    analyser.connect(c.destination);
+  }
+  return masterBus;
+}
+
+/** Returns a shared AnalyserNode that observes everything routed through the master bus. */
+export function getAudioAnalyser(): AnalyserNode | null {
+  const c = getCtx();
+  if (!c) return null;
+  getBus(c);
+  return analyser;
 }
 
 function buildVintageIR(c: AudioContext): AudioBuffer {
@@ -44,7 +67,8 @@ export interface ToneOptions {
 }
 
 function destinationOf(c: AudioContext, vintage: boolean): AudioNode {
-  if (!vintage) return c.destination;
+  const bus = getBus(c);
+  if (!vintage) return bus;
   // Build vintage chain once-ish via lazy nodes per call (cheap).
   const bp = c.createBiquadFilter();
   bp.type = "bandpass";
@@ -54,10 +78,10 @@ function destinationOf(c: AudioContext, vintage: boolean): AudioNode {
   conv.buffer = buildVintageIR(c);
   const wet = c.createGain();
   wet.gain.value = 0.18;
-  bp.connect(c.destination);
+  bp.connect(bus);
   bp.connect(conv);
   conv.connect(wet);
-  wet.connect(c.destination);
+  wet.connect(bus);
   return bp;
 }
 

@@ -6,7 +6,9 @@ export function Header() {
     <header className="w-full px-8 py-5 flex items-center justify-between border-b border-(--color-hairline)">
       <div className="flex items-center gap-5">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <span className="text-(--color-main) text-lg tracking-wider leading-none font-mono">··· −−− ···</span>
+          <span className="text-(--color-main) text-lg tracking-wider leading-none font-mono">
+            ··· −−− ···
+          </span>
           <span className="font-display text-lg font-bold tracking-tight leading-none">
             <span className="text-(--color-text)">morse</span>
             <span className="text-(--color-main)">type</span>
@@ -16,14 +18,21 @@ export function Header() {
       </div>
       <nav className="flex items-center gap-6 text-[13px] lowercase">
         <NavLink to="/">practice</NavLink>
-        <NavLink to="/about">learn</NavLink>
+        <NavLink to="/learn">learn</NavLink>
+        <NavLink to="/about">chart</NavLink>
         <NavLink to="/leaderboard">leaderboard</NavLink>
       </nav>
     </header>
   );
 }
 
-function NavLink({ to, children }: { to: "/" | "/leaderboard" | "/about" | "/receive"; children: React.ReactNode }) {
+function NavLink({
+  to,
+  children,
+}: {
+  to: "/" | "/learn" | "/leaderboard" | "/about" | "/receive";
+  children: React.ReactNode;
+}) {
   return (
     <Link
       to={to}

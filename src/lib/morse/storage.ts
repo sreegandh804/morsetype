@@ -1,6 +1,5 @@
 import type { InputScheme, GapMode } from "./useMorseInput";
 import type { ContentKind } from "./content";
-import type { Rank } from "./ranks";
 import type { Waveform } from "./audio";
 
 export type Theme = "serika" | "telegraph" | "midnight" | "radiosport";
@@ -8,7 +7,7 @@ export type Theme = "serika" | "telegraph" | "midnight" | "radiosport";
 export interface Settings {
   scheme: InputScheme;
   gapMode: GapMode;
-  unitMs: number;       // dit length, ms
+  unitMs: number; // dit length, ms
   audio: boolean;
   pitchHz: number;
   showHints: boolean;
@@ -21,8 +20,6 @@ export interface Settings {
   vintage: boolean;
   // Telegraph key visual
   showKey: boolean;
-  // Ranks
-  rank: Rank;
   // Decode mode
   decodeAudioOnly: boolean;
   decodeFarnsworth: boolean;
@@ -42,19 +39,23 @@ export const DEFAULT_SETTINGS: Settings = {
   waveform: "sine",
   vintage: false,
   showKey: true,
-  rank: "cadet",
   decodeAudioOnly: false,
   decodeFarnsworth: false,
 };
 
 const KEY = "morsetype.settings.v1";
 
+const VALID_CONTENT: ContentKind[] = ["letters", "words", "sentences", "numbers"];
+
 export function loadSettings(): Settings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    const merged = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } as Settings;
+    // a stored "ranks"/"course" content kind is no longer valid — fall back
+    if (!VALID_CONTENT.includes(merged.content)) merged.content = DEFAULT_SETTINGS.content;
+    return merged;
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -65,7 +66,9 @@ export function saveSettings(s: Settings) {
   try {
     localStorage.setItem(KEY, JSON.stringify(s));
     window.dispatchEvent(new CustomEvent("morsetype:settings-changed"));
-  } catch {}
+  } catch {
+    /* storage unavailable — non-fatal */
+  }
 }
 
 export function wpmFromUnit(unitMs: number) {

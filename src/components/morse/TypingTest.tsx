@@ -19,7 +19,7 @@ type Phase = "idle" | "running" | "done";
 export function TypingTest() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   useApplyTheme(settings.theme);
-  const [target, setTarget] = useState(() => generate(settings.content, settings.wordCount, settings.rank));
+  const [target, setTarget] = useState(() => generate(settings.content, settings.wordCount));
   const [typed, setTyped] = useState<string>("");
   const [errors, setErrors] = useState<boolean[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -40,7 +40,7 @@ export function TypingTest() {
   }
 
   function restart(nextSettings = settings) {
-    setTarget(generate(nextSettings.content, nextSettings.wordCount, nextSettings.rank));
+    setTarget(generate(nextSettings.content, nextSettings.wordCount));
     setTyped("");
     setErrors([]);
     setPhase("idle");
@@ -72,7 +72,9 @@ export function TypingTest() {
   }
 
   // restart whenever content/length changes
-  useEffect(() => { restart(settings); /* eslint-disable-next-line */ }, [settings.content, settings.wordCount, settings.rank]);
+  useEffect(() => {
+    restart(settings); /* eslint-disable-next-line */
+  }, [settings.content, settings.wordCount]);
 
   // tick timer
   useEffect(() => {
@@ -80,7 +82,9 @@ export function TypingTest() {
     tickRef.current = window.setInterval(() => {
       setElapsedMs(performance.now() - startedAt);
     }, 100);
-    return () => { if (tickRef.current) window.clearInterval(tickRef.current); };
+    return () => {
+      if (tickRef.current) window.clearInterval(tickRef.current);
+    };
   }, [phase, startedAt]);
 
   // global keyboard: Tab+Enter restart, Esc settings
@@ -91,9 +95,22 @@ export function TypingTest() {
         tabPressed = false;
         return;
       }
-      if (e.key === "Escape") { e.preventDefault(); setSettingsOpen(true); return; }
-      if (e.key === "Tab") { e.preventDefault(); tabPressed = true; return; }
-      if (e.key === "Enter" && tabPressed) { e.preventDefault(); tabPressed = false; restart(); return; }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSettingsOpen(true);
+        return;
+      }
+      if (e.key === "Tab") {
+        e.preventDefault();
+        tabPressed = true;
+        return;
+      }
+      if (e.key === "Enter" && tabPressed) {
+        e.preventDefault();
+        tabPressed = false;
+        restart();
+        return;
+      }
       if (e.key === "Shift" || e.key === "Control" || e.key === "Alt" || e.key === "Meta") return;
       tabPressed = false;
     }
@@ -205,14 +222,16 @@ export function TypingTest() {
 
   const currentChar = target[typed.length];
   const targetMorse =
-    currentChar && currentChar !== " "
-      ? MORSE[currentChar.toUpperCase()] ?? null
-      : null;
+    currentChar && currentChar !== " " ? (MORSE[currentChar.toUpperCase()] ?? null) : null;
 
   return (
     <div className="flex flex-col items-center w-full max-w-3xl mx-auto px-8">
       <div className="mb-8">
-        <ModeBar settings={settings} onChange={patchSettings} onOpenSettings={() => setSettingsOpen(true)} />
+        <ModeBar
+          settings={settings}
+          onChange={patchSettings}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
       </div>
 
       {phase !== "done" ? (
@@ -271,7 +290,12 @@ export function TypingTest() {
         />
       )}
 
-      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} settings={settings} onChange={patchSettings} />
+      <SettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        settings={settings}
+        onChange={patchSettings}
+      />
     </div>
   );
 }
@@ -281,17 +305,29 @@ function InputHelp({ scheme, gapMode }: { scheme: string; gapMode: string }) {
     scheme === "paddle"
       ? [{ k: "space", v: "tap dit · hold dah" }]
       : scheme === "two_key"
-        ? [{ k: "j", v: "dit" }, { k: "k", v: "dah" }]
-        : [{ k: ".", v: "dit" }, { k: "-", v: "dah" }];
+        ? [
+            { k: "j", v: "dit" },
+            { k: "k", v: "dah" },
+          ]
+        : [
+            { k: ".", v: "dit" },
+            { k: "-", v: "dah" },
+          ];
   const gapHint = gapMode === "auto" ? "auto-timing" : "space = letter · enter = word";
   return (
     <div className="mt-6 text-[11px] text-(--color-sub-faint) flex flex-wrap justify-center gap-x-5 gap-y-1 lowercase tracking-wide">
-      {inputHints.map(h => (
-        <span key={h.k}><span className="text-(--color-sub) font-medium">{h.k}</span> = {h.v}</span>
+      {inputHints.map((h) => (
+        <span key={h.k}>
+          <span className="text-(--color-sub) font-medium">{h.k}</span> = {h.v}
+        </span>
       ))}
       <span>{gapHint}</span>
-      <span><span className="text-(--color-sub) font-medium">tab</span> = restart</span>
-      <span><span className="text-(--color-sub) font-medium">esc</span> = settings</span>
+      <span>
+        <span className="text-(--color-sub) font-medium">tab</span> = restart
+      </span>
+      <span>
+        <span className="text-(--color-sub) font-medium">esc</span> = settings
+      </span>
     </div>
   );
 }

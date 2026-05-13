@@ -255,6 +255,7 @@ export function TypingTest() {
             gapMode={settings.gapMode}
             scheme={settings.scheme}
             invalidAt={invalidAt}
+            showHints={settings.showHints}
           />
           <div className="w-full">
             <MorsePrompt

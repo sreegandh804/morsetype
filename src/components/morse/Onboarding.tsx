@@ -87,6 +87,7 @@ export function Onboarding({ onComplete, onSkip, scheme }: Props) {
         gapMode="auto"
         scheme={scheme}
         invalidAt={invalidAt}
+        showHints={true}
       />
 
       <MorsePrompt

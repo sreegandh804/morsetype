@@ -375,6 +375,7 @@ function SendActivity({
         gapMode="auto"
         scheme={ctx.settings.scheme}
         invalidAt={invalidAt}
+        showHints={true}
       />
       {answered ? (
         <div className="text-[12px] text-(--color-sub-strong) animate-in fade-in duration-200">

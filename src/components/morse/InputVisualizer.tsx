@@ -10,6 +10,7 @@ interface Props {
   gapMode: GapMode;
   scheme: InputScheme;
   invalidAt: number | null;
+  showHints: boolean;
 }
 
 type PelletState = "ghost" | "correct" | "wrong";
@@ -23,6 +24,7 @@ export function InputVisualizer({
   gapMode,
   scheme,
   invalidAt,
+  showHints,
 }: Props) {
   const [pressMs, setPressMs] = useState(0);
   useEffect(() => {
@@ -83,9 +85,14 @@ export function InputVisualizer({
           }
           const userSym = typed[i];
           const filled = userSym != null;
+          // Hints off: don't render ghost outlines — they reveal the target shape.
+          if (!filled && !showHints) return null;
           const correct = filled && userSym === sym;
           const state: PelletState = !filled ? "ghost" : correct ? "correct" : "wrong";
-          return <Pellet key={`${i}-${state}`} kind={sym} state={state} />;
+          // Wrong pellets render the user's actual symbol so hints-off play
+          // doesn't leak the target via pellet width.
+          const kindToShow = filled ? (userSym as "." | "-") : sym;
+          return <Pellet key={`${i}-${state}`} kind={kindToShow} state={state} />;
         })}
         {overflow.map((c, i) => (
           <Pellet key={`x-${i}`} kind={c} state="wrong" />

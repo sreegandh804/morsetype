@@ -78,11 +78,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "MorseType — Practice Morse code, fast." },
       { name: "description", content: "A Monkeytype-style Morse code typing trainer. Learn the alphabet, race against your WPM, climb the leaderboard." },
-      { property: "og:title", content: "MorseType" },
-      { property: "og:description", content: "Monkeytype, but for Morse code." },
+      { property: "og:title", content: "MorseType — Practice Morse code, fast." },
+      { property: "og:description", content: "A Monkeytype-style Morse code typing trainer. Learn the alphabet, race against your WPM, climb the leaderboard." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "MorseType — Practice Morse code, fast." },
+      { name: "twitter:description", content: "A Monkeytype-style Morse code typing trainer. Learn the alphabet, race against your WPM, climb the leaderboard." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e0515558-b626-44ee-bd25-51c3882d99b0/id-preview-d1fbc062--50e5f900-3295-4486-9933-e8dcf0a4e617.lovable.app-1778494340721.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e0515558-b626-44ee-bd25-51c3882d99b0/id-preview-d1fbc062--50e5f900-3295-4486-9933-e8dcf0a4e617.lovable.app-1778494340721.png" },
     ],
     links: [
       {

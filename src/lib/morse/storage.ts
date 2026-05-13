@@ -31,7 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   unitMs: 80, // ~15 wpm
   audio: true,
   pitchHz: 600,
-  showHints: false,
+  showHints: true,
   content: "letters",
   wordCount: 25,
   theme: "serika",

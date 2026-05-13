@@ -291,7 +291,7 @@ export function DecodeTest() {
   const correctCount = errors.filter((e, i) => !e && target[i] !== " ").length;
   const incorrectCount = errors.filter((e) => e).length;
   const totalChars = typed.replace(/\s/g, "").length;
-  const wpm = useMemo(() => calcWpm(correctCount, elapsedMs || 1), [correctCount, elapsedMs]);
+  const wpm = useMemo(() => calcWpm(correctCount, elapsedMs), [correctCount, elapsedMs]);
   const acc = calcAccuracy(correctCount, totalChars);
 
   if (phase === "done") {
@@ -311,7 +311,6 @@ export function DecodeTest() {
           correct={correctCount}
           incorrect={incorrectCount}
           settings={settings}
-          direction="decode"
           onRestart={() => restart()}
         />
         <SettingsDialog

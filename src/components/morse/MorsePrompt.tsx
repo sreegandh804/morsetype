@@ -31,6 +31,12 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse }: 
         else if (done) color = isError ? "var(--color-error)" : "var(--color-sub-strong)";
 
         const morseGlyph = isSpace ? "" : MORSE[ch.toUpperCase()] ?? "";
+        // With hints on we always show morse below every non-space letter
+        // (target for ghosts, user's live input on the current). With hints
+        // off we only reveal the dits/dashes the user is actively typing on
+        // the current letter — no template/blank row above ghost letters.
+        const showMorseRow =
+          !isSpace && (showHints || (isCurrent && currentMorse.length > 0));
         const hintMorse =
           isCurrent && currentMorse ? currentMorse : morseGlyph;
 
@@ -57,7 +63,7 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse }: 
               {isCurrent && <span className="caret prompt-caret absolute -left-[3px]" />}
               {isSpace ? " " : ch}
             </span>
-            {showHints && !isSpace && (
+            {showMorseRow && (
               <span
                 className="font-mono text-[10px] tracking-[1px]"
                 style={{

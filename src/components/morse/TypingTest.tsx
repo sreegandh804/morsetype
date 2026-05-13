@@ -31,6 +31,15 @@ export function TypingTest() {
 
   const tickRef = useRef<number | null>(null);
 
+  // Countdown budget: how long the user has to finish, derived from the
+  // generated text and the configured send speed (unitMs). PARIS estimates
+  // ~10 dit-units per char; we use ~14 (incl. letter gaps) and add a
+  // 40% headroom buffer so realistic operators can complete in time.
+  const budgetMs = useMemo(() => {
+    const raw = target.length * settings.unitMs * 14 * 1.4;
+    return Math.max(15000, Math.round(raw));
+  }, [target, settings.unitMs]);
+
   function patchSettings(patch: Partial<Settings>) {
     setSettings((s) => {
       const next = { ...s, ...patch };
@@ -170,7 +179,8 @@ export function TypingTest() {
   // detect completion — wait for last letter's transmit animation to play,
   // then trigger View Transition into Results
   useEffect(() => {
-    if (phase === "running" && typed.length >= target.length) {
+    const timeUp = phase === "running" && elapsedMs >= budgetMs;
+    if (phase === "running" && (typed.length >= target.length || timeUp)) {
       const finalElapsed = startedAt ? performance.now() - startedAt : 0;
       // Stop the ticking timer immediately so WPM/elapsed freeze at the
       // moment the user finishes — not after the transmit animation delay.
@@ -178,13 +188,13 @@ export function TypingTest() {
         window.clearInterval(tickRef.current);
         tickRef.current = null;
       }
-      setElapsedMs(finalElapsed);
+      setElapsedMs(Math.min(finalElapsed, budgetMs));
       const reduced =
         typeof window !== "undefined" &&
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       const complete = () => {
         setPhase("done");
-        setElapsedMs(finalElapsed);
+        setElapsedMs(Math.min(finalElapsed, budgetMs));
         reset();
       };
       const doc = document as Document & {
@@ -192,7 +202,7 @@ export function TypingTest() {
       };
       // 560ms = letter-transmit (540ms) + small buffer so the animation lands
       // before View Transition unmounts MorsePrompt
-      const delay = reduced ? 0 : 560;
+      const delay = reduced || timeUp ? 0 : 560;
       const t = window.setTimeout(() => {
         if (!reduced && typeof doc.startViewTransition === "function") {
           doc.startViewTransition(complete);
@@ -202,7 +212,7 @@ export function TypingTest() {
       }, delay);
       return () => window.clearTimeout(t);
     }
-  }, [typed, target, phase, startedAt, reset]);
+  }, [typed, target, phase, startedAt, reset, elapsedMs, budgetMs]);
 
   const correctCount = errors.filter((e, i) => !e && target[i] !== " ").length;
   const incorrectCount = errors.filter((e) => e).length;
@@ -260,6 +270,7 @@ export function TypingTest() {
               wpm={wpm}
               acc={acc}
               elapsedMs={elapsedMs}
+              remainingMs={budgetMs - elapsedMs}
               total={target.length}
               typed={typed.length}
               active={phase === "running"}

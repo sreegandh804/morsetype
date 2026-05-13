@@ -76,8 +76,6 @@ function TouchGate() {
       </p>
       <div className="text-[12px] text-(--color-sub-faint) flex gap-4 lowercase tracking-wide">
         <Link to="/about" className="hover:text-(--color-sub) underline underline-offset-4">alphabet chart</Link>
-        <span>·</span>
-        <Link to="/leaderboard" className="hover:text-(--color-sub) underline underline-offset-4">leaderboard</Link>
       </div>
     </div>
   );

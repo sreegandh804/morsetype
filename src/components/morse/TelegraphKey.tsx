@@ -1,17 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { InputScheme } from "@/lib/morse/useMorseInput";
 
 interface Props {
   scheme: InputScheme;
   pressStartAt: number | null;
   lastSymbolAt: number | null;
+  /** Hold threshold in ms — visualised as the dit/dah dividing line. */
+  dahThresholdMs?: number;
+  /** Maximum range of the meter, in ms. Defaults to 1.6× threshold. */
+  meterMaxMs?: number;
 }
 
 /**
  * Tiny SVG of a straight key / iambic paddle that physically depresses
  * when input is detected. Pinned bottom-right of the test area.
  */
-export function TelegraphKey({ scheme, pressStartAt, lastSymbolAt }: Props) {
+export function TelegraphKey({
+  scheme,
+  pressStartAt,
+  lastSymbolAt,
+  dahThresholdMs,
+  meterMaxMs,
+}: Props) {
   const [pulse, setPulse] = useState(false);
   useEffect(() => {
     if (lastSymbolAt == null) return;
@@ -22,10 +32,50 @@ export function TelegraphKey({ scheme, pressStartAt, lastSymbolAt }: Props) {
 
   const pressed = pressStartAt != null || pulse;
 
+  // Live press meter — animates while the key is held so the user can SEE
+  // when their press tips from dit into dah territory.
+  const max = meterMaxMs ?? Math.round((dahThresholdMs ?? 160) * 1.6);
+  const [pct, setPct] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (pressStartAt == null) {
+      setPct(0);
+      return;
+    }
+    const tick = () => {
+      const held = performance.now() - pressStartAt;
+      setPct(Math.min(100, (held / max) * 100));
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [pressStartAt, max]);
+
+  const thresholdPct = dahThresholdMs ? Math.min(100, (dahThresholdMs / max) * 100) : null;
+  const overThreshold = thresholdPct != null && pct >= thresholdPct;
+
   if (scheme === "two_key") {
     return <IambicPaddle leftDown={pressed} rightDown={false} />;
   }
-  return <StraightKey down={pressed} />;
+  return (
+    <div className="telegraph-key-stack" aria-hidden>
+      <StraightKey down={pressed} />
+      {dahThresholdMs != null && (
+        <div className="press-meter" data-over={overThreshold ? "true" : "false"}>
+          <div className="press-meter-fill" style={{ width: `${pct}%` }} />
+          {thresholdPct != null && (
+            <div className="press-meter-tick" style={{ left: `${thresholdPct}%` }} />
+          )}
+          <div className="press-meter-labels">
+            <span>dit</span>
+            <span style={{ left: `${thresholdPct ?? 50}%` }}>dah →</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function StraightKey({ down }: { down: boolean }) {

@@ -17,7 +17,16 @@ import { useApplyTheme } from "@/hooks/use-theme";
 type Phase = "idle" | "running" | "done";
 
 export function TypingTest() {
+  // Initialize with defaults so SSR + first client render match. Real
+  // (localStorage) settings load on mount via the effect below — this
+  // eliminates the React hydration mismatch warning on word-count pills,
+  // pellet styles, and the morse prompt.
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setSettings(loadSettings());
+    setHydrated(true);
+  }, []);
   useApplyTheme(settings.theme);
   const [target, setTarget] = useState(() => generate(settings.content, settings.wordCount));
   const [typed, setTyped] = useState<string>("");
@@ -165,6 +174,7 @@ export function TypingTest() {
     scheme: settings.scheme,
     gapMode: settings.gapMode,
     unitMs: settings.unitMs,
+    dahThresholdUnits: settings.dahThresholdUnits,
     audio: settings.audio,
     pitchHz: settings.pitchHz,
     audioMode: settings.audioMode,
@@ -285,6 +295,11 @@ export function TypingTest() {
                 scheme={settings.scheme}
                 pressStartAt={pressStartAt}
                 lastSymbolAt={lastSymbolAt}
+                dahThresholdMs={
+                  settings.scheme === "paddle"
+                    ? settings.unitMs * settings.dahThresholdUnits
+                    : undefined
+                }
               />
             </div>
           )}

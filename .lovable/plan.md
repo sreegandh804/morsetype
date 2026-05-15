@@ -1,107 +1,75 @@
-# MorseType v2 — Telegraph Soul + Decode Mode
+## Goal
 
-Three additions, all sharing the existing engine and design tokens. Sending stays the primary experience; decoding is a secondary mode reached via a subtle toggle.
+Make the single-input (spacebar) experience feel like operating a real straight key — and give newcomers a short, on-brand way to learn the rhythm before they're thrown into a test.
 
-## 1. Telegraph Key Aesthetics & Sound
+---
 
-**Authentic sounder mode** — Settings → Audio → `tone | sounder`
-- `src/lib/morse/audio.ts` extended with `clack(kind: "down" | "up")`: a short filtered noise burst (band-passed white noise + sharp envelope, ~12 ms down-click, ~8 ms up-click). Synthesized in Web Audio — no audio assets to ship.
-- Down-click on symbol start, up-click on symbol end. For dahs the two clicks are spaced by symbol length, exactly like a real Vibroplex sounder. Tone mode keeps the existing sine beep.
+## 1. Fix the "always dit" bug (paddle / spacebar mode)
 
-**Sidetone tuning** — new Settings → Audio section
-- Pitch slider 450–900 Hz (currently fixed 600).
-- Waveform: sine / square / triangle.
-- "Vintage radio" toggle → routes osc through a `BiquadFilter` (band-pass ~600 Hz, Q ≈ 4) plus a `ConvolverNode` with a synthesized short impulse response (built in code).
+Likely causes to investigate in `useMorseInput.ts` and `TypingTest.tsx`:
+- The page-level keydown handler may be calling `e.preventDefault()` on space (via the Tab/Enter restart logic) and disrupting the keyup pairing.
+- `e.repeat` on a held spacebar can fire many keydowns; if any path resets `downAt`, the measured hold collapses to ~0 and reads as a dit.
+- Browser may scroll on space and steal focus on some layouts.
 
-**Visual telegraph key** — `src/components/morse/TelegraphKey.tsx`
-- Small SVG (~120×80) pinned bottom-right of the test area.
-- Auto-picks variant from input scheme:
-  - `paddle` / `literal` → straight key (lever pivots down on key-down).
-  - `two_key` → iambic paddle (left = dit, right = dah, each tilts independently).
-- Driven by existing `pressStartAt` from `useMorseInput`. CSS transform with 80 ms ease, respects `prefers-reduced-motion`.
+Fix: make sure space in paddle mode is captured exclusively by `useMorseInput`, `e.preventDefault()` always runs on both down and up, repeats are ignored, and `downAt` is only set on the FIRST keydown of a press.
 
-**Paper tape printer** — restyle existing `TransmissionLog`
-- Update `.transmission-log` in `src/styles.css`: cream/manila tile background, perforation strips top & bottom (CSS `radial-gradient` dots), inked dits/dahs in dark ink color, faint typewriter letter under each correct cluster.
-- Slow rightward scroll on new symbols (~180 ms `translateX`).
+Verify with a small on-screen "last hold: 187ms · threshold: 160ms · → DAH" debug readout in dev only, removed before ship.
 
-## 2. Progressive Difficulty Ranks (replaces "tongue twisters")
+---
 
-Replace `tongue_twisters` content with a **Ranks** mode.
+## 2. Single-input as a first-class mode with a "Realism" dial
 
-| Rank | Pool | WPM floor | Punctuation | Prosigns |
-|---|---|---|---|---|
-| Cadet | letters + short common words | 10 wpm | — | — |
-| Operator | common words + short sentences | 15 wpm | `. ,` | — |
-| Sparks | sentences + numbers + callsigns | 20 wpm | `. , ? /` | `<AR> <BT>` |
-| Chief Radioman | long-form + Q-codes + callsigns | 25 wpm | full set | `<AR> <BT> <SK> <KN>` |
+Rename the current `paddle` scheme to **"Straight key (spacebar)"** in the UI — this is the one authentic operators used. Keep `two_key (j/k)` and `literal (./-)` available as alternatives.
 
-- New `src/lib/morse/ranks.ts` with `RANKS` config + `generateForRank(rank, wordCount)`.
-- `content.ts`: drop `tongue_twisters`, add a `ranks` content kind that delegates by `settings.rank`.
-- `ModeBar`: replace the `twisters` pill with a 4-pill **rank selector**.
-- Picking a rank auto-bumps `unitMs` to its floor (only if current is slower).
-- Prosigns rendered like `<AR>` and treated as one multi-symbol token (one `flushLetter` after the run-together pattern).
-- Add ham callsigns (`W1AW`, `K3LR`, `G0XYZ`, `VK2ABC`…) and Q-codes (`QTH QSL QRZ QSY QRM`) to the pool.
-- Migration: add `rank` column to `leaderboard_entries`, leaderboard filterable by rank.
+Add a new setting **Realism** (3 stops on a slider) that maps to the dit/dah threshold + send WPM together, so the user picks one knob:
 
-## 3. Decode Mode (Receiving Operator desk)
+| Stop | Feel | dit unit | dah threshold |
+|---|---|---|---|
+| Practice | Slow & forgiving | 140ms (~9 WPM) | 2.5× unit (350ms) |
+| Authentic | Real shipboard cadence | 80ms (~15 WPM) | 2× unit (160ms) |
+| Sparks | Fast operator | 50ms (~24 WPM) | 1.8× unit (90ms) |
 
-The "other side" — app sends Morse, you type the plaintext.
+Power users can still override unit/threshold individually in advanced settings. Realism slider is the friendly front door.
 
-### Navigation (intuitive, non-primary)
+**Press meter:** while spacebar is held, the existing telegraph-key SVG already depresses — add a thin progress bar underneath the key that fills from 0 → dah-threshold so the user can SEE the moment their press tips into a dah. This single visual fixes 90% of "I can't tell what counts as long" confusion without a tutorial.
 
-A small two-segment toggle lives in the header next to the logo, not in the main nav:
+---
 
-```text
-morsetype   [▶ send  · 🎧 receive]    practice   learn   leaderboard
-```
+## 3. Mini tutorial — "Learn the key"
 
-- Left segment is selected by default and active on the home route `/`.
-- Right segment routes to a new `/receive` page.
-- Visually the same `pill` style as `ModeBar` so it feels like part of the practice surface, not a top-level destination. Keyboard shortcut: `Ctrl/Cmd + Shift + R` toggles between them.
-- Both `/` and `/receive` share the header, the `ModeBar` (mode/length/rank/audio/settings), the `StatsBar`, and the `Results` screen — only the middle prompt swaps.
+Always available, never auto-launched (per user preference). Entry points:
+- A small `learn the key` link in the header (next to Send/Receive toggle).
+- Inline link under the input help row: "new to a single key? learn the rhythm".
 
-### Audio-only is supported
+Themed as a short, in-character training session — same paper-tape + telegraph-key aesthetic as the main app, NOT a modal carpet-bomb. Four micro-steps, each one screen, advance with the key itself (sending the right symbol = next step):
 
-Yes — confirmed. The receive view has a **"Audio only"** toggle in the audio cluster (next to the existing sound icon). When on:
-- The oscilloscope strip and paper tape both fade to a dim "·" placeholder.
-- Only the typed-text line and a tiny "now playing" pulse remain.
-- Great pure-ear-training mode; perfect for the sounder + vintage radio combo.
+1. **Tap → dit.** "A short tap is a dit. Send one." Visual: telegraph key + press meter shown clearly. User presses spacebar briefly. ✓ on success.
+2. **Hold → dah.** "Hold it down past the line for a dah." Press meter highlights the dah threshold. User holds. ✓ on success.
+3. **Send E (·) and T (−).** Two single-symbol letters. Reinforces dit vs dah without timing-gap complexity.
+4. **Send your callsign: "ET".** Combines the two letters with the auto letter-gap. Done — drop them back at the test with their selected realism.
 
-When off (default), full operator desk:
+No "press Next" buttons — they progress by sending the right thing, which is the whole point.
 
-```text
-┌─────────────────────────────────────────────────┐
-│  ░░░░  ▓  ░░░░░░  ▓  ░░░░  ▓▓▓  ░░░░  ▓        │  ← live waveform strip
-│                                                 │     (oscilloscope, eye-candy
-│            t h e   q u i _                      │     synced to envelope)
-│                                                 │  ← MorsePrompt in decode mode:
-│                                                 │     hidden target, green = matched
-│                                                 │     red = wrong at that index
-│   ●─── ──● ●●●● ●  ─── ●●─                      │  ← paper tape: what's been SENT
-│                                                 │     so far (toggle on/off)
-└─────────────────────────────────────────────────┘
-        [▶ play]  [⏸ pause]  [↻ replay last word]
-```
+After completion, a tiny note: "you can replay this anytime from the header."
 
-- **Top scope strip**: thin oscilloscope-like line, lights up while a tone plays, synced to audio envelope.
-- **Middle**: existing `MorsePrompt` in decode variant — target hidden until run ends, only typed chars show with green/red.
-- **Bottom paper tape**: repurposed `TransmissionLog` showing what's been transmitted (togglable; default on).
-- Controls: play/pause, replay last word (huge for learning), speed slider, optional Farnsworth toggle.
-- WPM = effective copy WPM (correct chars typed before next letter sent).
+---
 
-### Implementation sketch
+## Out of scope for this plan
 
-- New route `src/routes/receive.tsx` and `DecodeTest.tsx` component.
-- Header gains the segmented toggle (`SendReceiveToggle.tsx`).
-- New `src/lib/morse/player.ts` schedules symbols/letter/word gaps using current unit timing, with optional Farnsworth.
-- Reuses `audio.ts` (and the new sounder path) for playback.
-- Input is the regular keyboard (a–z, 0–9, space, punctuation per rank). No morse encoding on the user side.
-- Same `leaderboard_entries` table; add `direction` column (`send` | `decode`) so leaderboards split cleanly.
-- "Audio only" preference persists in `settings.decodeAudioOnly`.
+- Personal-calibration capture (sample N dits + N dahs to derive a custom threshold). Skipped: the Realism slider + visual press meter solves the same problem more simply. Can revisit if users still struggle.
+- Adaptive threshold drift. Same reason.
+- Letter/word gap drills. Already taught implicitly in step 4; a dedicated drill would bloat the tutorial.
 
-## Open question
+---
 
-One small confirm before I build:
-- **Rank pill behavior**: when a rank is selected, should the content pool be **driven by the rank** (replacing the `letters / words / sentences / numbers` pills with the rank's curated pool), or stay **additive** (rank only sets difficulty floor; user still picks content)? My recommendation: **driven by rank** — cleaner, matches a real progression, and the existing pills can still be used when "no rank" is selected.
+## Files I expect to touch
 
-Reply yes/no on the rank behavior and I'll build everything above.
+- `src/lib/morse/useMorseInput.ts` — bug fix, ignore `e.repeat` cleanly, ensure space preventDefault on both down/up.
+- `src/components/morse/TypingTest.tsx` — make sure the global key handler doesn't shadow space.
+- `src/components/morse/TelegraphKey.tsx` — add the press-meter bar.
+- `src/lib/morse/storage.ts` — add `realism: "practice" | "authentic" | "sparks"` and `dahThresholdUnits: number`; derive unitMs/threshold from realism.
+- `src/components/morse/SettingsDialog.tsx` + `ModeBar.tsx` — surface the Realism slider; rename paddle → "Straight key".
+- `src/components/morse/Header.tsx` — add "learn the key" link.
+- `src/routes/learn-key.tsx` (new) + `src/components/morse/KeyTutorial.tsx` (new) — the 4-step micro-tutorial.
+
+Quietly fix the SSR hydration mismatch on `wordCount` pills + initial pellet styles while in those files (root cause: settings read from localStorage on first render — needs to defer the client-only branch until after mount).

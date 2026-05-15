@@ -3,11 +3,44 @@ import type { ContentKind } from "./content";
 import type { Waveform } from "./audio";
 
 export type Theme = "serika" | "telegraph" | "midnight" | "radiosport";
+export type Realism = "practice" | "authentic" | "sparks" | "custom";
+
+export interface RealismPreset {
+  unitMs: number;
+  dahThresholdUnits: number;
+  label: string;
+  blurb: string;
+}
+
+export const REALISM_PRESETS: Record<Exclude<Realism, "custom">, RealismPreset> = {
+  practice: {
+    unitMs: 140,
+    dahThresholdUnits: 2.5,
+    label: "practice",
+    blurb: "slow & forgiving · ~9 wpm",
+  },
+  authentic: {
+    unitMs: 80,
+    dahThresholdUnits: 2,
+    label: "authentic",
+    blurb: "real shipboard cadence · ~15 wpm",
+  },
+  sparks: {
+    unitMs: 50,
+    dahThresholdUnits: 1.8,
+    label: "sparks",
+    blurb: "fast operator · ~24 wpm",
+  },
+};
 
 export interface Settings {
   scheme: InputScheme;
   gapMode: GapMode;
   unitMs: number; // dit length, ms
+  // dah threshold for single-key (paddle) input, expressed in dit-units
+  dahThresholdUnits: number;
+  // current realism preset (or "custom" if user tweaked manually)
+  realism: Realism;
   audio: boolean;
   pitchHz: number;
   showHints: boolean;
@@ -28,7 +61,9 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   scheme: "two_key",
   gapMode: "auto",
-  unitMs: 80, // ~15 wpm
+  unitMs: REALISM_PRESETS.authentic.unitMs,
+  dahThresholdUnits: REALISM_PRESETS.authentic.dahThresholdUnits,
+  realism: "authentic",
   audio: true,
   pitchHz: 600,
   showHints: true,
@@ -59,6 +94,12 @@ export function loadSettings(): Settings {
   } catch {
     return DEFAULT_SETTINGS;
   }
+}
+
+/** Resolve a realism preset → Settings patch (unit + dah threshold). */
+export function applyRealism(name: Exclude<Realism, "custom">): Partial<Settings> {
+  const p = REALISM_PRESETS[name];
+  return { realism: name, unitMs: p.unitMs, dahThresholdUnits: p.dahThresholdUnits };
 }
 
 export function saveSettings(s: Settings) {

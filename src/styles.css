@@ -382,6 +382,93 @@
   }
   .telegraph-key-svg { display: block; }
 
+  .telegraph-key-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    width: 140px;
+  }
+  .press-meter {
+    position: relative;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-surface-2);
+    overflow: visible;
+    border: 1px solid var(--color-hairline);
+  }
+  .press-meter-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 999px;
+    background: var(--color-sub-strong);
+    transition: background 90ms var(--ease-out-quint);
+  }
+  .press-meter[data-over="true"] .press-meter-fill {
+    background: var(--color-main);
+    box-shadow: 0 0 8px var(--color-main-soft);
+  }
+  .press-meter-tick {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 1.5px;
+    background: var(--color-main-border);
+    transform: translateX(-50%);
+  }
+  .press-meter-labels {
+    position: relative;
+    height: 12px;
+    margin-top: 2px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-sub-faint);
+  }
+  .press-meter-labels > span {
+    position: absolute;
+    top: 0;
+  }
+  .press-meter-labels > span:first-child { left: 0; }
+  .press-meter-labels > span:last-child {
+    transform: translateX(-50%);
+    color: var(--color-sub);
+  }
+
+  .realism-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .realism-card {
+    text-align: left;
+    padding: 0.55rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    transition: border-color 150ms var(--ease-out-quint), color 150ms var(--ease-out-quint);
+    color: var(--color-sub-strong);
+    cursor: pointer;
+  }
+  .realism-card:hover { border-color: var(--color-sub); }
+  .realism-card[data-active="true"] {
+    border-color: var(--color-main);
+    color: var(--color-main);
+    background: var(--color-main-soft);
+  }
+  .realism-card-title {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: lowercase;
+  }
+  .realism-card-blurb {
+    font-size: 10px;
+    color: var(--color-sub-faint);
+    margin-top: 1px;
+    line-height: 1.25;
+  }
+
   .send-receive-toggle {
     display: inline-flex;
     align-items: center;

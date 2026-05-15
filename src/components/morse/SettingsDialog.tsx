@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import type { Settings, Theme } from "@/lib/morse/storage";
-import { wpmFromUnit, unitFromWpm } from "@/lib/morse/storage";
+import { wpmFromUnit, unitFromWpm, REALISM_PRESETS, applyRealism } from "@/lib/morse/storage";
 
 const THEMES: Array<{
   key: Theme;
@@ -148,9 +148,34 @@ export function SettingsDialog({ open, onOpenChange, settings, onChange }: Props
           {/* ── RIGHT: practice ────────────────────────────────────────── */}
           <div className="space-y-7">
             <Group title="input">
+              <Subsection label="realism">
+                <div className="realism-grid">
+                  {(Object.keys(REALISM_PRESETS) as Array<keyof typeof REALISM_PRESETS>).map((k) => {
+                    const p = REALISM_PRESETS[k];
+                    const active = settings.realism === k;
+                    return (
+                      <button
+                        key={k}
+                        type="button"
+                        className="realism-card"
+                        data-active={active}
+                        onClick={() => onChange(applyRealism(k))}
+                      >
+                        <div className="realism-card-title">{p.label}</div>
+                        <div className="realism-card-blurb">{p.blurb}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {settings.realism === "custom" && (
+                  <div className="text-(--color-sub-faint) text-[10px] mt-2 lowercase tracking-wide">
+                    custom timing — pick a preset to reset
+                  </div>
+                )}
+              </Subsection>
               <Subsection label="scheme">
                 <RadioGroup value={settings.scheme} onValueChange={(v) => onChange({ scheme: v as Settings["scheme"] })} className="gap-2">
-                  <SchemeOption value="paddle" title="single key (paddle)" hint="space — tap = dit, hold = dah" current={settings.scheme} />
+                  <SchemeOption value="paddle" title="straight key (spacebar)" hint="space — tap = dit, hold = dah · most authentic" current={settings.scheme} />
                   <SchemeOption value="two_key" title="two keys" hint="J = dit · K = dah" current={settings.scheme} />
                   <SchemeOption value="literal" title="literal" hint=". = dit · - = dah" current={settings.scheme} />
                 </RadioGroup>
@@ -165,8 +190,30 @@ export function SettingsDialog({ open, onOpenChange, settings, onChange }: Props
 
             <Group title="timing">
               <Subsection label="speed" suffix={`${wpm} wpm · ${settings.unitMs}ms`}>
-                <Slider min={10} max={40} step={1} value={[wpm]} onValueChange={([v]) => onChange({ unitMs: unitFromWpm(v) })} />
+                <Slider
+                  min={5}
+                  max={40}
+                  step={1}
+                  value={[wpm]}
+                  onValueChange={([v]) => onChange({ unitMs: unitFromWpm(v), realism: "custom" })}
+                />
               </Subsection>
+              {settings.scheme === "paddle" && (
+                <Subsection
+                  label="dit / dah threshold"
+                  suffix={`${settings.dahThresholdUnits.toFixed(1)}× · ${Math.round(settings.unitMs * settings.dahThresholdUnits)}ms`}
+                >
+                  <Slider
+                    min={1.5}
+                    max={3.5}
+                    step={0.1}
+                    value={[settings.dahThresholdUnits]}
+                    onValueChange={([v]) =>
+                      onChange({ dahThresholdUnits: Number(v.toFixed(1)), realism: "custom" })
+                    }
+                  />
+                </Subsection>
+              )}
               <InlineToggle
                 label="farnsworth (receive)"
                 hint="wider gaps · same symbol speed · train your ear on the silence"

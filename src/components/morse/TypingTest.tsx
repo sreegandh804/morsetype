@@ -10,14 +10,24 @@ import { TelegraphKey } from "./TelegraphKey";
 import { useMorseInput } from "@/lib/morse/useMorseInput";
 import { generate } from "@/lib/morse/content";
 import { calcAccuracy, calcWpm } from "@/lib/morse/wpm";
-import { loadSettings, saveSettings, type Settings } from "@/lib/morse/storage";
+import { loadSettings, saveSettings, DEFAULT_SETTINGS, type Settings } from "@/lib/morse/storage";
 import { MORSE } from "@/lib/morse/alphabet";
 import { useApplyTheme } from "@/hooks/use-theme";
 
 type Phase = "idle" | "running" | "done";
 
 export function TypingTest() {
-  const [settings, setSettings] = useState<Settings>(() => loadSettings());
+  // Initialize with defaults so SSR + first client render match. Real
+  // (localStorage) settings load on mount via the effect below — this
+  // eliminates the React hydration mismatch warning on word-count pills,
+  // pellet styles, and the morse prompt.
+  // Start from DEFAULTS so server + first client render match exactly,
+  // then load saved settings on mount. Eliminates hydration mismatch on
+  // word-count pills, pellet styling, and prompt text.
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  useEffect(() => {
+    setSettings(loadSettings());
+  }, []);
   useApplyTheme(settings.theme);
   const [target, setTarget] = useState(() => generate(settings.content, settings.wordCount));
   const [typed, setTyped] = useState<string>("");
@@ -165,6 +175,7 @@ export function TypingTest() {
     scheme: settings.scheme,
     gapMode: settings.gapMode,
     unitMs: settings.unitMs,
+    dahThresholdUnits: settings.dahThresholdUnits,
     audio: settings.audio,
     pitchHz: settings.pitchHz,
     audioMode: settings.audioMode,
@@ -285,6 +296,11 @@ export function TypingTest() {
                 scheme={settings.scheme}
                 pressStartAt={pressStartAt}
                 lastSymbolAt={lastSymbolAt}
+                dahThresholdMs={
+                  settings.scheme === "paddle"
+                    ? settings.unitMs * settings.dahThresholdUnits
+                    : undefined
+                }
               />
             </div>
           )}

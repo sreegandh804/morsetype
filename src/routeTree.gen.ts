@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ReceiveRouteImport } from './routes/receive'
+import { Route as LearnKeyRouteImport } from './routes/learn-key'
 import { Route as LearnRouteImport } from './routes/learn'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const ReceiveRoute = ReceiveRouteImport.update({
   id: '/receive',
   path: '/receive',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnKeyRoute = LearnKeyRouteImport.update({
+  id: '/learn-key',
+  path: '/learn-key',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LearnRoute = LearnRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/learn': typeof LearnRoute
+  '/learn-key': typeof LearnKeyRoute
   '/receive': typeof ReceiveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/learn': typeof LearnRoute
+  '/learn-key': typeof LearnKeyRoute
   '/receive': typeof ReceiveRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/learn': typeof LearnRoute
+  '/learn-key': typeof LearnKeyRoute
   '/receive': typeof ReceiveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/learn' | '/receive'
+  fullPaths: '/' | '/about' | '/learn' | '/learn-key' | '/receive'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/learn' | '/receive'
-  id: '__root__' | '/' | '/about' | '/learn' | '/receive'
+  to: '/' | '/about' | '/learn' | '/learn-key' | '/receive'
+  id: '__root__' | '/' | '/about' | '/learn' | '/learn-key' | '/receive'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   LearnRoute: typeof LearnRoute
+  LearnKeyRoute: typeof LearnKeyRoute
   ReceiveRoute: typeof ReceiveRoute
 }
 
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/receive'
       fullPath: '/receive'
       preLoaderRoute: typeof ReceiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn-key': {
+      id: '/learn-key'
+      path: '/learn-key'
+      fullPath: '/learn-key'
+      preLoaderRoute: typeof LearnKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/learn': {
@@ -106,18 +123,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   LearnRoute: LearnRoute,
+  LearnKeyRoute: LearnKeyRoute,
   ReceiveRoute: ReceiveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

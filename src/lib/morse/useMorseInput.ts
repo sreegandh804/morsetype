@@ -9,6 +9,8 @@ export interface MorseInputOptions {
   scheme: InputScheme;
   gapMode: GapMode;
   unitMs: number;
+  /** Hold threshold for paddle/spacebar in dit-units. Defaults to 2. */
+  dahThresholdUnits?: number;
   audio: boolean;
   pitchHz: number;
   audioMode?: "tone" | "sounder";
@@ -150,7 +152,8 @@ export function useMorseInput(opts: MorseInputOptions) {
       setPressStartAt(null);
       if (start == null) return;
       const held = performance.now() - start;
-      const isDah = held >= o.unitMs * 2;
+      const threshold = o.unitMs * (o.dahThresholdUnits ?? 2);
+      const isDah = held >= threshold;
       pushSymbol(isDah ? "-" : ".");
     }
 

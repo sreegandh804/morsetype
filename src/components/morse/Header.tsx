@@ -18,6 +18,7 @@ export function Header() {
       </div>
       <nav className="flex items-center gap-6 text-[13px] lowercase">
         <NavLink to="/">practice</NavLink>
+        <NavLink to="/learn-key">learn the key</NavLink>
         <NavLink to="/about">chart</NavLink>
         <a
           href="https://github.com/sreegandh804/morsetype"
@@ -38,7 +39,7 @@ function NavLink({
   to,
   children,
 }: {
-  to: "/" | "/about" | "/receive";
+  to: "/" | "/about" | "/receive" | "/learn-key";
   children: React.ReactNode;
 }) {
   return (

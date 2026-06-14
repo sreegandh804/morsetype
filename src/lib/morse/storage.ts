@@ -55,7 +55,10 @@ export interface Settings {
   showKey: boolean;
   // Decode mode
   decodeAudioOnly: boolean;
-  decodeFarnsworth: boolean;
+  /** Receive character (element) speed in WPM. */
+  characterWpm: number;
+  /** Receive overall (PARIS) speed in WPM. Must be ≤ characterWpm. */
+  effectiveWpm: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -75,7 +78,8 @@ export const DEFAULT_SETTINGS: Settings = {
   vintage: false,
   showKey: true,
   decodeAudioOnly: false,
-  decodeFarnsworth: false,
+  characterWpm: 20,
+  effectiveWpm: 20,
 };
 
 const KEY = "morsetype.settings.v1";
@@ -87,7 +91,16 @@ export function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return DEFAULT_SETTINGS;
-    const merged = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } as Settings;
+    const parsed = JSON.parse(raw) as Partial<Settings> & { decodeFarnsworth?: boolean };
+    const merged = { ...DEFAULT_SETTINGS, ...parsed } as Settings;
+    // Migrate legacy boolean Farnsworth → 18/10 wpm split when on.
+    if (parsed.decodeFarnsworth != null && parsed.characterWpm == null) {
+      if (parsed.decodeFarnsworth) {
+        merged.characterWpm = 18;
+        merged.effectiveWpm = 10;
+      }
+    }
+    if (merged.effectiveWpm > merged.characterWpm) merged.effectiveWpm = merged.characterWpm;
     // a stored "ranks"/"course" content kind is no longer valid — fall back
     if (!VALID_CONTENT.includes(merged.content)) merged.content = DEFAULT_SETTINGS.content;
     return merged;

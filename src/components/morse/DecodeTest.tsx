@@ -129,8 +129,8 @@ export function DecodeTest() {
     playbackRef.current?.stop();
     setPaused(false);
     playbackRef.current = play(text, {
-      unitMs: settings.unitMs,
-      farnsworth: settings.decodeFarnsworth,
+      characterWpm: settings.characterWpm,
+      effectiveWpm: settings.effectiveWpm,
       audio: audioOnForce ?? true,
       audioMode: settings.audioMode,
       pitchHz: settings.pitchHz,

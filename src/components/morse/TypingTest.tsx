@@ -96,8 +96,9 @@ export function TypingTest() {
 
   // restart whenever content/length changes
   useEffect(() => {
+    if (!hydrated) return;
     restart(settings); /* eslint-disable-next-line */
-  }, [settings.content, settings.wordCount]);
+  }, [hydrated, settings.content, settings.wordCount]);
 
   // tick timer
   useEffect(() => {

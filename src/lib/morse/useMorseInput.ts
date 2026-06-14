@@ -35,6 +35,11 @@ export function useMorseInput(opts: MorseInputOptions) {
   const downAt = useRef<number | null>(null);
   const letterTimer = useRef<number | null>(null);
   const wordTimer = useRef<number | null>(null);
+  // Iambic state for two-key (J/K) scheme: hold a paddle → continuous stream.
+  const ditDown = useRef(false);
+  const dahDown = useRef(false);
+  const iambicTimer = useRef<number | null>(null);
+  const lastIambicSent = useRef<"." | "-" | null>(null);
   const [current, setCurrent] = useState("");
   const [lastSymbolAt, setLastSymbolAt] = useState<number | null>(null);
   const [pressStartAt, setPressStartAt] = useState<number | null>(null);
@@ -85,6 +90,32 @@ export function useMorseInput(opts: MorseInputOptions) {
     }
   }
 
+  function scheduleIambic() {
+    if (iambicTimer.current != null) return; // already busy emitting a symbol
+    let next: "." | "-" | null = null;
+    if (ditDown.current && dahDown.current) {
+      // squeeze: alternate from whatever we just sent
+      next = lastIambicSent.current === "." ? "-" : ".";
+    } else if (ditDown.current) {
+      next = ".";
+    } else if (dahDown.current) {
+      next = "-";
+    }
+    if (!next) {
+      lastIambicSent.current = null;
+      return;
+    }
+    const sym = next;
+    pushSymbol(sym);
+    lastIambicSent.current = sym;
+    const o = optsRef.current;
+    const dur = (sym === "." ? 1 : 3) * o.unitMs;
+    iambicTimer.current = window.setTimeout(() => {
+      iambicTimer.current = null;
+      scheduleIambic();
+    }, dur + o.unitMs);
+  }
+
   useEffect(() => {
     if (!opts.enabled) return;
 
@@ -130,8 +161,23 @@ export function useMorseInput(opts: MorseInputOptions) {
       }
 
       if (o.scheme === "two_key") {
-        if (k.toLowerCase() === TWO_DIT) { e.preventDefault(); pushSymbol("."); return; }
-        if (k.toLowerCase() === TWO_DAH) { e.preventDefault(); pushSymbol("-"); return; }
+        const kl = k.toLowerCase();
+        if (kl === TWO_DIT) {
+          e.preventDefault();
+          if (!ditDown.current) {
+            ditDown.current = true;
+            scheduleIambic();
+          }
+          return;
+        }
+        if (kl === TWO_DAH) {
+          e.preventDefault();
+          if (!dahDown.current) {
+            dahDown.current = true;
+            scheduleIambic();
+          }
+          return;
+        }
         return;
       }
 
@@ -144,6 +190,12 @@ export function useMorseInput(opts: MorseInputOptions) {
 
     function onKeyUp(e: KeyboardEvent) {
       const o = optsRef.current;
+      if (o.scheme === "two_key") {
+        const kl = e.key.toLowerCase();
+        if (kl === TWO_DIT) { ditDown.current = false; e.preventDefault(); return; }
+        if (kl === TWO_DAH) { dahDown.current = false; e.preventDefault(); return; }
+        return;
+      }
       if (o.scheme !== "paddle") return;
       if (e.key !== PADDLE_KEY) return;
       e.preventDefault();
@@ -164,6 +216,10 @@ export function useMorseInput(opts: MorseInputOptions) {
       window.removeEventListener("keyup", onKeyUp);
       if (letterTimer.current) window.clearTimeout(letterTimer.current);
       if (wordTimer.current) window.clearTimeout(wordTimer.current);
+      if (iambicTimer.current) window.clearTimeout(iambicTimer.current);
+      ditDown.current = false;
+      dahDown.current = false;
+      lastIambicSent.current = null;
     };
   }, [opts.enabled]);
 
@@ -173,6 +229,11 @@ export function useMorseInput(opts: MorseInputOptions) {
     setLastSymbolAt(null);
     setPressStartAt(null);
     downAt.current = null;
+    ditDown.current = false;
+    dahDown.current = false;
+    lastIambicSent.current = null;
+    if (iambicTimer.current) window.clearTimeout(iambicTimer.current);
+    iambicTimer.current = null;
     if (letterTimer.current) window.clearTimeout(letterTimer.current);
     if (wordTimer.current) window.clearTimeout(wordTimer.current);
   }

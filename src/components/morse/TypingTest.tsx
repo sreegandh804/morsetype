@@ -25,11 +25,15 @@ export function TypingTest() {
   // then load saved settings on mount. Eliminates hydration mismatch on
   // word-count pills, pellet styling, and prompt text.
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     setSettings(loadSettings());
+    setHydrated(true);
   }, []);
   useApplyTheme(settings.theme);
-  const [target, setTarget] = useState(() => generate(settings.content, settings.wordCount));
+  // Defer target generation until after hydration — `generate()` uses
+  // Math.random(), which would mismatch SSR HTML and trigger hydration errors.
+  const [target, setTarget] = useState<string>("");
   const [typed, setTyped] = useState<string>("");
   const [errors, setErrors] = useState<boolean[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");

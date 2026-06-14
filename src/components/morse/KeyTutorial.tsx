@@ -45,18 +45,18 @@ const STEPS: Step[] = [
   {
     id: 3,
     title: "send T  ( − )",
-    prompt: "send the letter T — one dah.",
+    prompt: "send the letter T.",
     hint: "T is the second-shortest letter in morse. one good hold.",
     expect: { kind: "char", value: "T" },
-    display: "T  −",
+    display: "T",
   },
   {
     id: 4,
-    title: "send your callsign — ET",
-    prompt: "send E then T — a dit, a pause, a dah.",
+    title: "send E T",
+    prompt: "send E, pause, then T.",
     hint: "after a symbol, wait ~3 dit-units of silence and the next letter starts.",
     expect: { kind: "sequence", value: "ET" },
-    display: "ET  · −",
+    display: "ET",
   },
 ];
 

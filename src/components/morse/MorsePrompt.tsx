@@ -30,15 +30,13 @@ export function MorsePrompt({ target, typed, errors, showHints, currentMorse }: 
         if (isCurrent) color = "var(--color-main)";
         else if (done) color = isError ? "var(--color-error)" : "var(--color-sub-strong)";
 
-        const morseGlyph = isSpace ? "" : MORSE[ch.toUpperCase()] ?? "";
-        // With hints on we always show morse below every non-space letter
-        // (target for ghosts, user's live input on the current). With hints
-        // off we only reveal the dits/dashes the user is actively typing on
-        // the current letter — no template/blank row above ghost letters.
+        // Never reveal the target's dits/dashes — that short-circuits
+        // learning to *hear* a letter. The only morse rendered below the
+        // prompt is the user's own live keying on the current letter while
+        // they're sending it (and only when "echo" is enabled).
         const showMorseRow =
-          !isSpace && (showHints || (isCurrent && currentMorse.length > 0));
-        const hintMorse =
-          isCurrent && currentMorse ? currentMorse : morseGlyph;
+          !isSpace && isCurrent && showHints && currentMorse.length > 0;
+        const hintMorse = currentMorse;
 
         return (
           <span

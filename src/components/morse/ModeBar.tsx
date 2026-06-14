@@ -46,9 +46,9 @@ export function ModeBar({ settings, onChange, onOpenSettings }: Props) {
         className="pill"
         data-active={settings.showHints}
         onClick={() => onChange({ showHints: !settings.showHints })}
-        title="Toggle morse hints"
+        title="Show your live keying readout"
       >
-        hints
+        echo
       </button>
       <span className="divider" />
       <button

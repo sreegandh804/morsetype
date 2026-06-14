@@ -214,12 +214,38 @@ export function SettingsDialog({ open, onOpenChange, settings, onChange }: Props
                   />
                 </Subsection>
               )}
-              <InlineToggle
-                label="farnsworth (receive)"
-                hint="wider gaps · same symbol speed · train your ear on the silence"
-                value={settings.decodeFarnsworth}
-                onChange={(b) => onChange({ decodeFarnsworth: b })}
-              />
+              <Subsection
+                label="receive: character speed"
+                suffix={`${settings.characterWpm} wpm`}
+              >
+                <Slider
+                  min={10}
+                  max={40}
+                  step={1}
+                  value={[settings.characterWpm]}
+                  onValueChange={([v]) => {
+                    const eff = Math.min(settings.effectiveWpm, v);
+                    onChange({ characterWpm: v, effectiveWpm: eff });
+                  }}
+                />
+              </Subsection>
+              <Subsection
+                label="receive: effective speed (farnsworth)"
+                suffix={`${settings.effectiveWpm} wpm`}
+              >
+                <Slider
+                  min={5}
+                  max={40}
+                  step={1}
+                  value={[settings.effectiveWpm]}
+                  onValueChange={([v]) =>
+                    onChange({ effectiveWpm: Math.min(v, settings.characterWpm) })
+                  }
+                />
+                <div className="text-(--color-sub-faint) text-[10px] mt-1 lowercase tracking-wide">
+                  e.g. 30 / 10 — symbols sent fast, gaps stretched so you have time to copy.
+                </div>
+              </Subsection>
             </Group>
 
             <Group title="display">
